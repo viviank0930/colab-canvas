@@ -1,0 +1,18 @@
+# Local secrets and runtime state
+.env
+.env.*
+!.env.example
+.colab.pid
+colab-server.log
+
+# Locally bundled tools
+.tools/
+
+# Python and macOS artifacts
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Scratch folders
+outputs/
+work/

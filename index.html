@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f7f8fb" />
+  <title>CoLab Canvas</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" id="homeBtn" aria-label="Projects"><span class="brand-mark">C</span><span>CoLab</span></button>
+      <button class="project-switcher" id="projectSwitcher"><span class="project-icon">SD</span><span><strong>Shared Direction</strong><small>Design collaboration research</small></span><span class="chevron">⌄</span></button>
+      <nav class="stages" aria-label="Project stages">
+        <button class="stage active" data-stage="Research">Research</button><button class="stage" data-stage="Define">Define</button><button class="stage" data-stage="Ideate">Ideate</button><button class="stage" data-stage="Develop">Develop</button><button class="stage" data-stage="Review">Review</button>
+      </nav>
+      <div class="presence" aria-label="Four collaborators online"><span class="avatar a1">V</span><span class="avatar a2">K</span><span class="avatar a3">A</span><span class="avatar count">L</span></div>
+      <button class="ai-toggle" id="aiToggle"><span class="ai-face mini"><i></i><b></b></span>AI partner</button>
+      <button class="share-btn" id="shareBtn">Share</button>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <aside class="toolrail" aria-label="Project journey and canvas tools">
+        <div class="journey-head"><span>PROJECT JOURNEY</span><strong>Research</strong><small>Explore evidence and perspectives</small></div>
+        <nav class="journey-list" aria-label="Project journey">
+          <button class="journey-step active" data-journey="Research"><i>01</i><span><strong>Research</strong><small>Gather evidence</small></span></button>
+          <button class="journey-step" data-journey="Define"><i>02</i><span><strong>Define</strong><small>Frame the challenge</small></span></button>
+          <button class="journey-step" data-journey="Ideate"><i>03</i><span><strong>Ideate</strong><small>Explore possibilities</small></span></button>
+          <button class="journey-step" data-journey="Develop"><i>04</i><span><strong>Develop</strong><small>Build and test</small></span></button>
+          <button class="journey-step" data-journey="Review"><i>05</i><span><strong>Review</strong><small>Reflect together</small></span></button>
+        </nav>
+        <div class="tools-label"><span>CANVAS TOOLS</span><small>Space + drag to pan</small></div>
+        <div class="tools-grid">
+        <button class="tool active" data-tool="select" title="Select and move"><span>↖</span><small>Select</small></button>
+        <button class="tool" data-tool="hand" title="Pan canvas"><span>✋</span><small>Hand</small></button>
+        <button class="tool" data-tool="sticky" title="Add sticky note"><span>▰</span><small>Sticky</small></button>
+        <button class="tool" data-tool="text" title="Add text"><span>T</span><small>Text</small></button>
+        <button class="tool" data-tool="image" title="Add image"><span>▧</span><small>Image</small></button>
+        <button class="tool" data-tool="connect" title="Connect two items"><span>⌁</span><small>Connect</small></button>
+        <button class="tool" data-tool="comment" title="Add comment"><span>◯</span><small>Comment</small></button>
+        <button class="tool" data-tool="vote" title="Vote on an item"><span>♡</span><small>Vote</small></button>
+        <button class="tool ai-organise-tool" data-tool="ai" title="Draw an area for AI Organise"><span>✦</span><small>AI Organise</small></button>
+        <span class="tool-divider"></span>
+        <button class="tool" id="undoBtn" title="Undo"><span>↶</span><small>Undo</small></button>
+        <button class="tool" id="redoBtn" title="Redo"><span>↷</span><small>Redo</small></button>
+        </div>
+      </aside>
+
+      <section class="canvas-wrap" id="canvasWrap" aria-label="Infinite collaborative canvas">
+        <div class="canvas" id="canvas">
+          <svg class="connection-layer" id="connectionLayer" width="2400" height="1600" aria-hidden="true"></svg>
+          <section class="canvas-heading object" data-id="heading" data-type="text" style="left:145px;top:90px">
+            <span>Research stage · Team workshop</span><h1 contenteditable="true">Why does our project lose direction?</h1><p>Scattered observations from Vivian, Kevin, Amy and Leo</p>
+          </section>
+          <article class="sticky object yellow" data-id="n1" data-type="sticky" style="left:170px;top:300px"><p contenteditable="true">Research findings are difficult to connect.</p><footer><span>Vivian · 10:12</span><button class="note-vote">♡ <b>3</b></button></footer></article>
+          <article class="sticky object blue tilt-right" data-id="n2" data-type="sticky" style="left:490px;top:260px"><p contenteditable="true">Tutor feedback is interpreted differently by each of us.</p><footer><span>Kevin · 10:18</span><button class="note-vote">♡ <b>5</b></button></footer></article>
+          <article class="sticky object coral tilt-left" data-id="n3" data-type="sticky" style="left:275px;top:530px"><p contenteditable="true">Discussions often end without a clear decision.</p><footer><span>Amy · 10:23</span><button class="note-vote">♡ <b>4</b></button></footer></article>
+          <article class="sticky object green" data-id="n4" data-type="sticky" style="left:700px;top:470px"><p contenteditable="true">Information is spread across too many platforms.</p><footer><span>Leo · 10:31</span><button class="note-vote">♡ <b>2</b></button></footer></article>
+          <article class="sticky object yellow tilt-right" data-id="n5" data-type="sticky" style="left:900px;top:245px"><p contenteditable="true">Different members focus on different parts of the feedback.</p><footer><span>Kevin · 10:36</span><button class="note-vote">♡ <b>6</b></button></footer></article>
+          <article class="sticky object blue" data-id="n6" data-type="sticky" style="left:1060px;top:510px"><p contenteditable="true">We collect many references but struggle to synthesise them.</p><footer><span>Amy · 10:42</span><button class="note-vote">♡ <b>4</b></button></footer></article>
+          <article class="sticky object green tilt-left" data-id="n7" data-type="sticky" style="left:505px;top:700px"><p contenteditable="true">The next action is unclear after each meeting.</p><footer><span>Vivian · 10:48</span><button class="note-vote">♡ <b>7</b></button></footer></article>
+          <article class="sticky object coral" data-id="n8" data-type="sticky" style="left:865px;top:760px"><p contenteditable="true">No one consistently maintains the project structure.</p><footer><span>Leo · 10:53</span><button class="note-vote">♡ <b>5</b></button></footer></article>
+          <article class="sticky object yellow tilt-left" data-id="n9" data-type="sticky" style="left:225px;top:845px"><p contenteditable="true">Team roles change throughout the project.</p><footer><span>Vivian · 11:02</span><button class="note-vote">♡ <b>8</b></button></footer></article>
+          <article class="sticky object blue tilt-right" data-id="n10" data-type="sticky" style="left:1130px;top:850px"><p contenteditable="true">Some decisions happen only because the deadline is close.</p><footer><span>Kevin · 11:09</span><button class="note-vote">♡ <b>3</b></button></footer></article>
+
+          <div class="comment-pin object" data-id="c1" data-type="comment" style="left:650px;top:425px"><span>2</span><div class="comment-popover"><strong>Amy</strong><p>Are we solving the feedback or our collaboration process?</p><button>Reply</button></div></div>
+          <div class="member-cursor cursor-mei"><i></i><label>Vivian</label></div><div class="member-cursor cursor-jon"><i></i><label>Kevin</label></div>
+          <div class="selection-box" id="selectionBox"></div>
+          <div class="ai-selection-badge hidden" id="aiSelectionBadge"><span class="ai-face micro"><i></i><b></b></span><strong>AI Selection</strong></div>
+        </div>
+
+        <div class="selection-actions hidden" id="selectionActions"><strong><span id="selectedCount">0</span> notes selected</strong><button class="analyse-btn" id="analyseBtn"><span class="ai-face micro"><i></i><b></b></span>AI Organise</button><button id="summariseSelectionBtn">Summarise</button><button id="groupBtn">Group</button><button id="moveBtn">Move</button><button id="duplicateBtn">Duplicate</button><button id="deleteSelectionBtn">Delete</button><button id="clearSelection" aria-label="Clear selection">×</button></div>
+        <div class="canvas-controls"><button id="zoomOut" aria-label="Zoom out">−</button><span id="zoomValue">72%</span><button id="zoomIn" aria-label="Zoom in">+</button><button id="fitCanvas" aria-label="Fit canvas">⌗</button></div>
+        <div class="minimap" id="minimap"><div class="mini-viewport"></div><i class="m1"></i><i class="m2"></i><i class="m3"></i></div>
+        <button class="voice-fab" id="voiceFab" title="Start voice capture">●</button>
+      </section>
+
+      <aside class="ai-panel" id="aiPanel">
+        <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · team partner</strong><small><span class="live-dot"></span>Ready when your team asks</small></div></div><button class="icon-btn" id="closeAI" aria-label="Collapse AI sidebar">×</button></div>
+        <div class="ai-tabs"><button class="active" data-tab="insights">Understanding</button><button data-tab="chat">Discussion</button><button data-tab="progress">Memory</button><button data-tab="activity">Activity</button></div>
+        <div class="ai-content" id="insightsPanel">
+          <div class="partner-status"><span>HUMAN CONTROL</span><strong>Your team leads. Pip supports.</strong><p>Pip only looks at an area after someone selects it and asks for reflection.</p></div>
+          <section class="understanding-card"><header><span>Current understanding</span><small>Not yet confirmed</small></header><h3>What makes teams lose a shared direction?</h3><div class="understanding-row"><span>Current stage</span><strong>Research</strong></div><div class="understanding-row"><span>Evidence selected</span><strong>None</strong></div></section>
+          <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>Reflection starts with your selection</strong><p>Drag around a set of notes, then choose <b>AI Reflect</b>. Pip will surface patterns and questions without changing the canvas.</p></div></section>
+        </div>
+        <div class="ai-content hidden" id="chatPanel">
+          <div class="ai-message"><span class="ai-face tiny"><i></i><b></b></span><div><p>I am ready when you request support. Select part of the canvas or ask a question to begin.</p><time>Now</time></div></div>
+        </div>
+        <div class="ai-content hidden" id="progressPanel">
+          <div class="progress-hero"><span>Research stage</span><strong>Page memory</strong><p>Memory belongs only to this page and stays editable by the team.</p></div>
+          <div class="progress-step current"><i>?</i><div><strong>Unresolved question</strong><small>What is content feedback versus process feedback?</small></div></div>
+          <div class="progress-step"><i>✓</i><div><strong>Confirmed insight</strong><small>No confirmed insights yet</small></div></div>
+          <div class="progress-step"><i>→</i><div><strong>Next action</strong><small>Waiting for a team decision</small></div></div>
+          <div class="hardware-card"><strong>Ready for future hardware</strong><p>Voice recorder, drawing screen, and AI printed summaries can connect to this workspace.</p></div>
+        </div>
+        <div class="ai-content hidden" id="activityPanel"><div class="activity-head"><strong>Activity History</strong><p>Canvas and AI actions appear here. Applied AI changes can be undone.</p></div><div class="activity-list" id="activityList"></div></div>
+        <div class="analysis-view hidden" id="analysisView"><div class="analysis-head"><span class="ai-face"><i></i><b></b></span><div><strong>Analysis of <span id="analysisCount">0</span> notes</strong><small>Pip found patterns, not answers</small></div><button id="closeAnalysis">×</button></div><div class="analysis-loading" id="analysisLoading"><span></span><p>Reading the team's notes...</p></div><div class="analysis-results hidden" id="analysisResults"></div></div>
+        <form class="ai-input" id="aiForm"><div class="composer-heading"><label for="aiPrompt">Ask the team partner</label><span>Only selected canvas content is included</span></div><div class="composer-shell"><textarea id="aiPrompt" rows="2" placeholder="What should we reflect on together?"></textarea><div class="composer-actions"><div><button type="button" id="attachBtn" aria-label="Attach files">＋ <span>Attach</span></button><button type="button" id="voiceBtn" aria-label="Voice input">● <span>Voice</span></button></div><button type="submit" class="send-btn" aria-label="Ask AI Partner">Ask Pip <b>↗</b></button></div></div><div class="prompt-chips"><button type="button" class="quick-ai" data-quick="Summarise">Summarise selection</button><button type="button" class="quick-ai" data-quick="Next Step">Suggest a discussion prompt</button></div></form>
+      </aside>
+    </main>
+    <input type="file" id="imageInput" accept="image/*" hidden />
+    <div class="toast" id="toast" role="status"></div>
+    <dialog id="projectDialog"><button class="dialog-close">×</button><h2>Your projects</h2><div class="project-list"><button class="active"><span>SD</span><div><strong>Shared Direction</strong><small>Research · updated now</small></div></button><button><span>CM</span><div><strong>Campus Map</strong><small>Research · yesterday</small></div></button><button id="newProjectBtn"><span>＋</span><div><strong>Create blank page</strong><small>No frames, categories, or generated content</small></div></button></div></dialog>
+  </div>
+  <script src="./script.js"></script>
+</body>
+</html>
