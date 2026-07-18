@@ -5,6 +5,7 @@ import json
 import os
 import threading
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date
 from http.cookies import SimpleCookie
@@ -30,6 +31,9 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "same-origin")
+        if getattr(self, "invite_cookie", False):
+            secure = "; Secure" if os.getenv("RENDER") else ""
+            self.send_header("Set-Cookie", f"colab_access={session_token()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000{secure}")
         super().end_headers()
 
     def send_json(self, status, payload, cookie=None):
@@ -83,14 +87,21 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
             return True, None
 
     def do_GET(self):
+        parsed = urllib.parse.urlsplit(self.path)
+        invite = urllib.parse.parse_qs(parsed.query).get("invite", [""])[0]
+        if ACCESS_CODE and invite and hmac.compare_digest(invite, ACCESS_CODE):
+            self.invite_cookie = True
+        self.path = parsed.path or "/"
         if self.path == "/api/status":
             total, user = self.usage_status()
+            authenticated = self.authenticated() or getattr(self, "invite_cookie", False)
             return self.send_json(200, {
                 "auth_required": bool(ACCESS_CODE),
-                "authenticated": self.authenticated(),
+                "authenticated": authenticated,
                 "ai_configured": bool(os.getenv("DEEPSEEK_API_KEY")),
                 "remaining_today": max(0, DAILY_LIMIT - total),
                 "remaining_for_user": max(0, USER_DAILY_LIMIT - user),
+                "share_path": "/?invite=" + urllib.parse.quote(ACCESS_CODE, safe="") if authenticated and ACCESS_CODE else "/",
             })
         return super().do_GET()
 
