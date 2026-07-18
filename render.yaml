@@ -14,6 +14,6 @@ services:
       - key: APP_SECRET
         generateValue: true
       - key: DAILY_AI_LIMIT
-        value: "200"
+        value: "10"
       - key: PER_USER_DAILY_LIMIT
-        value: "20"
+        value: "3"
