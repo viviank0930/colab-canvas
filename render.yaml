@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: colab-canvas
+    runtime: python
+    plan: free
+    buildCommand: ""
+    startCommand: python3 server.py
+    autoDeploy: true
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: APP_ACCESS_CODE
+        sync: false
+      - key: APP_SECRET
+        generateValue: true
+      - key: DAILY_AI_LIMIT
+        value: "200"
+      - key: PER_USER_DAILY_LIMIT
+        value: "20"
