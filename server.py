@@ -13,8 +13,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
 API_URL = "https://api.deepseek.com/chat/completions"
 ACCESS_CODE = os.getenv("APP_ACCESS_CODE", "")
-DAILY_LIMIT = int(os.getenv("DAILY_AI_LIMIT", "200"))
-USER_DAILY_LIMIT = int(os.getenv("PER_USER_DAILY_LIMIT", "20"))
+DAILY_LIMIT = int(os.getenv("DAILY_AI_LIMIT", "10"))
+USER_DAILY_LIMIT = int(os.getenv("PER_USER_DAILY_LIMIT", "3"))
 SESSION_SECRET = os.getenv("APP_SECRET", ACCESS_CODE or "local-development")
 usage_lock = threading.Lock()
 usage_day = date.today().isoformat()
@@ -120,7 +120,7 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
             return self.send_json(429, {"error": message, "code": "rate_limited"})
         try:
             data = self.read_json()
-            notes = [str(x).strip()[:2000] for x in data.get("notes", []) if str(x).strip()][:80]
+            notes = [str(x).strip()[:500] for x in data.get("notes", []) if str(x).strip()][:30]
             task = str(data.get("task", "reflect"))[:1000]
             if not notes:
                 return self.send_json(400, {"error": "No readable selected notes"})
