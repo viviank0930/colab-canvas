@@ -3,7 +3,7 @@ set -e
 cd "$(dirname "$0")"
 
 if [[ -f ".colab.pid" ]] && kill -0 "$(cat .colab.pid)" 2>/dev/null; then
-  open "http://127.0.0.1:4173/"
+  [[ "${COLAB_NO_OPEN:-0}" == "1" ]] || open "http://127.0.0.1:4173/"
   exit 0
 fi
 
@@ -21,7 +21,7 @@ unset key
 
 for attempt in {1..30}; do
   if curl -fsS "http://127.0.0.1:4173/" >/dev/null 2>&1; then
-    open "http://127.0.0.1:4173/"
+    [[ "${COLAB_NO_OPEN:-0}" == "1" ]] || open "http://127.0.0.1:4173/"
     exit 0
   fi
   sleep 0.2

@@ -1,46 +1,114 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f7f8fb" />
-  <title>CoLab Canvas</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <meta name="theme-color" content="#f5f5f2" />
+  <title>CoLab - AI 协作空间</title>
+  <link rel="stylesheet" href="./styles.css?v=20260728-3" />
 </head>
 <body>
+  <div class="join-lobby hidden" id="joinLobby" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
+    <div class="join-shell">
+      <header class="join-header">
+        <div class="join-brand"><span class="brand-mark">C</span><strong>CoLab</strong></div>
+        <div class="join-header-actions">
+          <span class="join-invite"><i></i>团队邀请</span>
+          <button class="language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button>
+        </div>
+      </header>
+      <main class="join-grid">
+        <section class="join-hero">
+          <span class="join-kicker">共同方向 · 研究工作坊</span>
+          <h1 id="joinTitle">加入今天的<br>团队讨论。</h1>
+          <p>先了解这次讨论的目标与成员，再进入共同画布。你的观点会由你自己记录和决定。</p>
+          <div class="join-meta" aria-label="讨论信息">
+            <div><small>团队人数</small><strong><b id="joinTeamSizeMetric">4</b> <span>人</span></strong></div>
+            <div><small>当前在线</small><strong><i></i><b id="joinOnlineMetric">0 / 4</b></strong></div>
+            <div><small>预计时长</small><strong>45 分钟</strong></div>
+          </div>
+        </section>
+        <section class="join-panel">
+          <header class="join-panel-head">
+            <div><small>本次讨论</small><h2>为什么项目会失去共同方向？</h2></div>
+            <span>研究阶段</span>
+          </header>
+          <div class="join-members" id="joinMembers" aria-label="讨论成员"></div>
+          <div class="join-brief">
+            <small>今天要完成</small>
+            <strong>收集不同成员对导师反馈的理解</strong>
+            <p>最后由团队确认哪些是内容问题，哪些是协作过程问题。</p>
+          </div>
+          <ol class="join-flow" aria-label="讨论流程">
+            <li class="active"><i>1</i><span>记录</span></li><li><i>2</i><span>讨论</span></li><li><i>3</i><span>投票</span></li><li><i>4</i><span>回顾</span></li>
+          </ol>
+          <form class="join-form" id="joinForm">
+            <div class="join-size-field">
+              <div><label for="teamSizeValue">这次讨论共有几人？</label><small>团队人数包含你自己，可在进入前调整。</small></div>
+              <div class="team-size-control" role="group" aria-label="选择团队人数">
+                <button type="button" id="teamSizeDown" aria-label="减少团队人数">−</button>
+                <output id="teamSizeValue" aria-live="polite">4</output><span>人</span>
+                <button type="button" id="teamSizeUp" aria-label="增加团队人数">＋</button>
+              </div>
+            </div>
+            <label for="joinName">你希望团队怎样称呼你？</label>
+            <div class="join-name-row"><input id="joinName" name="memberName" maxlength="20" autocomplete="name" placeholder="输入你的名字" required><button type="submit">加入讨论 <b>↗</b></button></div>
+            <p class="join-form-error hidden" id="joinFormError">请输入名字后再加入。</p>
+          </form>
+          <p class="join-ai-note"><span class="ai-face micro"><i></i><b></b></span>Pip 不会预先整理画布，只在团队主动选择内容并请求后提供建议。</p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="onboarding hidden" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="onboarding-card">
+      <header><span class="brand-mark">C</span><div class="onboarding-actions"><button class="language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button><button id="skipTour">跳过教程</button></div></header>
+      <div class="tour-progress"><i class="active"></i><i></i><i></i><i></i></div>
+      <section class="tour-slide active" data-tour="0"><small>01 · 欢迎</small><h1 id="onboardingTitle">先由人思考，<br>再邀请 AI 参与。</h1><p>CoLab 不会自动整理你的画布。团队自由记录，只有框选内容并主动请求后，Pip 才会提供建议。</p><div class="tour-visual tour-canvas"><span></span><span></span><span></span><b>框选需要帮助的区域</b></div></section>
+      <section class="tour-slide" data-tour="1"><small>02 · 两种阶段</small><h1>项目向前走，<br>会议有节奏。</h1><p>左侧是项目阶段；顶部是一次会议的记录、讨论、投票与回顾。每一步都有明确目标和完成条件。</p><div class="tour-visual tour-flow"><b>研究</b><i></i><b>定义</b><i></i><b>构思</b><i></i><b>开发</b><i></i><b>回顾</b></div></section>
+      <section class="tour-slide" data-tour="2"><small>03 · 录音位置</small><h1>说完以后，<br>随时知道它在哪里。</h1><p>录音结束后会进入“讨论”中的语音记录。它会保存在当前设备的浏览器中，刷新后仍可播放，也可以下载到本机。</p><div class="tour-visual tour-audio"><button>■</button><span><strong>团队语音记录</strong><small>讨论 · 已保存在此设备</small></span><time>00:18</time></div></section>
+      <section class="tour-slide" data-tour="3"><small>04 · 手机协作</small><h1>电脑组织全局，<br>手机快速参与。</h1><p>成员通过邀请链接进入移动端，可添加观点、投票、录音和查看机器人状态，不需要操作缩小版桌面画布。</p><div class="tour-visual tour-phone"><div><span>共同方向</span><b>添加一个观点</b><i></i><i></i></div></div></section>
+      <footer><button id="tourBack" disabled>上一步</button><span id="tourStep">1 / 4</span><button id="tourNext">下一步</button></footer>
+    </div>
+  </div>
   <div class="app-shell">
     <header class="topbar">
-      <button class="brand" id="homeBtn" aria-label="Projects"><span class="brand-mark">C</span><span>CoLab</span></button>
-      <button class="project-switcher" id="projectSwitcher"><span class="project-icon">SD</span><span><strong>Shared Direction</strong><small>Design collaboration research</small></span><span class="chevron">⌄</span></button>
+      <button class="brand" id="homeBtn" aria-label="项目"><span class="brand-mark">C</span><span>CoLab</span></button>
+      <button class="project-switcher" id="projectSwitcher"><span class="project-icon">SD</span><span><strong>共同方向</strong><small>设计协作研究</small></span><span class="chevron">⌄</span></button>
       <nav class="stages" aria-label="Project stages">
-        <button class="stage active" data-stage="Research">Research</button><button class="stage" data-stage="Define">Define</button><button class="stage" data-stage="Ideate">Ideate</button><button class="stage" data-stage="Develop">Develop</button><button class="stage" data-stage="Review">Review</button>
+        <button class="stage active" data-stage="Research">研究</button><button class="stage" data-stage="Define">定义</button><button class="stage" data-stage="Ideate">构思</button><button class="stage" data-stage="Develop">开发</button><button class="stage" data-stage="Review">回顾</button>
       </nav>
-      <div class="presence" aria-label="Four collaborators online"><span class="avatar a1">V</span><span class="avatar a2">K</span><span class="avatar a3">A</span><span class="avatar count">L</span></div>
-      <button class="ai-toggle" id="aiToggle"><span class="ai-face mini"><i></i><b></b></span>AI partner</button>
-      <button class="share-btn" id="shareBtn">Share</button>
+      <button class="session-mode" id="sessionModeBtn"><span class="session-dot"></span><span><small>协作阶段</small><strong id="sessionModeLabel">自由记录</strong></span><b>⌄</b></button>
+      <div class="presence" aria-label="当前在线成员"><div class="presence-avatars" id="presenceAvatars"></div><span class="presence-total"><b id="presenceOnlineMetric">0 / 4</b><span>在线</span></span></div>
+      <button class="language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button>
+      <button class="tour-help" id="openTour" aria-label="打开新手教程">?</button>
+      <button class="facilitator-btn" id="facilitatorBtn"><span>观察</span><i id="signalCount">2</i></button>
+      <button class="ai-toggle" id="aiToggle"><span class="ai-face mini"><i></i><b></b></span>Pip</button>
+      <button class="share-btn" id="shareBtn">邀请成员</button>
     </header>
 
     <main class="workspace" id="workspace">
       <aside class="toolrail" aria-label="Project journey and canvas tools">
-        <div class="journey-head"><span>PROJECT JOURNEY</span><strong>Research</strong><small>Explore evidence and perspectives</small></div>
+        <div class="journey-head"><span>项目旅程</span><strong>研究</strong><small>探索证据与不同视角</small></div>
         <nav class="journey-list" aria-label="Project journey">
-          <button class="journey-step active" data-journey="Research"><i>01</i><span><strong>Research</strong><small>Gather evidence</small></span></button>
-          <button class="journey-step" data-journey="Define"><i>02</i><span><strong>Define</strong><small>Frame the challenge</small></span></button>
-          <button class="journey-step" data-journey="Ideate"><i>03</i><span><strong>Ideate</strong><small>Explore possibilities</small></span></button>
-          <button class="journey-step" data-journey="Develop"><i>04</i><span><strong>Develop</strong><small>Build and test</small></span></button>
-          <button class="journey-step" data-journey="Review"><i>05</i><span><strong>Review</strong><small>Reflect together</small></span></button>
+          <button class="journey-step active" data-journey="Research"><i>01</i><span><strong>研究</strong><small>收集证据</small></span></button>
+          <button class="journey-step" data-journey="Define"><i>02</i><span><strong>定义</strong><small>明确挑战</small></span></button>
+          <button class="journey-step" data-journey="Ideate"><i>03</i><span><strong>构思</strong><small>探索可能</small></span></button>
+          <button class="journey-step" data-journey="Develop"><i>04</i><span><strong>开发</strong><small>制作与测试</small></span></button>
+          <button class="journey-step" data-journey="Review"><i>05</i><span><strong>回顾</strong><small>共同反思</small></span></button>
         </nav>
-        <div class="tools-label"><span>CANVAS TOOLS</span><small>Space + drag to pan</small></div>
+        <div class="tools-label"><span>画布工具</span><small>双指滑动平移 · 捏合缩放</small></div>
         <div class="tools-grid">
-        <button class="tool active" data-tool="select" title="Select and move"><span>↖</span><small>Select</small></button>
-        <button class="tool" data-tool="hand" title="Pan canvas"><span>✋</span><small>Hand</small></button>
-        <button class="tool" data-tool="sticky" title="Add sticky note"><span>▰</span><small>Sticky</small></button>
-        <button class="tool" data-tool="text" title="Add text"><span>T</span><small>Text</small></button>
-        <button class="tool" data-tool="image" title="Add image"><span>▧</span><small>Image</small></button>
-        <button class="tool" data-tool="connect" title="Connect two items"><span>⌁</span><small>Connect</small></button>
-        <button class="tool" data-tool="comment" title="Add comment"><span>◯</span><small>Comment</small></button>
-        <button class="tool" data-tool="vote" title="Vote on an item"><span>♡</span><small>Vote</small></button>
-        <button class="tool ai-organise-tool" data-tool="ai" title="Draw an area for AI Organise"><span>✦</span><small>AI Organise</small></button>
+        <button class="tool active" data-tool="select" title="选择与移动"><span>↖</span><small>选择</small></button>
+        <button class="tool" data-tool="hand" title="平移画布"><span>✋</span><small>手型</small></button>
+        <button class="tool" data-tool="sticky" title="添加便签"><span>▰</span><small>便签</small></button>
+        <button class="tool" data-tool="text" title="添加文字"><span>T</span><small>文字</small></button>
+        <button class="tool" data-tool="image" title="添加图片"><span>▧</span><small>图片</small></button>
+        <button class="tool" data-tool="connect" title="连接两个对象"><span>⌁</span><small>连接</small></button>
+        <button class="tool" data-tool="comment" title="添加评论"><span>◯</span><small>评论</small></button>
+        <button class="tool" data-tool="vote" title="为观点投票"><span>♡</span><small>投票</small></button>
+        <button class="tool ai-organise-tool" data-tool="ai" title="分析当前选择"><span>✦</span><small>AI 分析</small></button>
         <span class="tool-divider"></span>
         <button class="tool" id="undoBtn" title="Undo"><span>↶</span><small>Undo</small></button>
         <button class="tool" id="redoBtn" title="Redo"><span>↷</span><small>Redo</small></button>
@@ -48,21 +116,47 @@
       </aside>
 
       <section class="canvas-wrap" id="canvasWrap" aria-label="Infinite collaborative canvas">
+        <div class="session-strip" id="sessionStrip">
+          <div><span class="live-indicator"></span><strong id="sessionStripTitle">自由记录</strong><small id="sessionStripHint">团队正在独立收集观察，AI保持安静</small></div>
+          <div class="session-steps" aria-label="会议阶段"><button class="active" data-session-step="记录">记录</button><i></i><button data-session-step="讨论">讨论</button><i></i><button data-session-step="投票">投票</button><i></i><button data-session-step="回顾">回顾</button></div>
+          <time id="sessionTimer">18:42</time><button class="complete-session" id="completeSessionBtn">完成并继续</button>
+        </div>
+
+        <section class="stage-guide" id="stageGuide">
+          <button class="stage-guide-toggle" id="stageGuideToggle"><span id="stageGuideNumber">01</span><div><small id="stageGuideLabel">研究阶段</small><strong id="stageGuideTitle">收集事实，而不是急着下结论</strong></div><b>⌄</b></button>
+          <div class="stage-guide-body" id="stageGuideBody">
+            <div><small>进入条件</small><p id="stageEntry">项目问题已经建立，团队准备收集资料。</p></div>
+            <div><small>当前目标</small><p id="stageGoal">记录来源、观察、访谈与导师反馈。</p></div>
+            <div><small>完成条件</small><p id="stageExit">已有足够证据，可以描述主要模式。</p></div>
+            <button id="advanceProjectBtn">完成研究，进入定义</button>
+          </div>
+        </section>
+
+        <aside class="facilitator-tray hidden" id="facilitatorTray" aria-label="主持人观察">
+          <header><div><small>仅主持人可见</small><strong>协作观察</strong></div><button id="closeFacilitator" aria-label="关闭">×</button></header>
+          <article class="signal-card primary-signal">
+            <span>讨论停滞</span><strong>过去 8 分钟没有出现新主题</strong><p>关于“如何整合导师反馈”的讨论已重复出现 4 次。</p>
+            <div><button id="viewRepeatedBtn">查看相关内容</button><button id="promptTeamBtn">邀请讨论</button></div>
+          </article>
+          <article class="signal-card"><span>参与平衡</span><strong>有 2 位成员尚未回应</strong><p>这是参与提示，不用于评价个人贡献。</p><button id="dismissSignalBtn">暂时忽略</button></article>
+          <footer>AI 只提出提醒，不会自动打断团队或控制机器人。</footer>
+        </aside>
         <div class="canvas" id="canvas">
           <svg class="connection-layer" id="connectionLayer" width="2400" height="1600" aria-hidden="true"></svg>
+          <section class="stage-scene research-scene" id="stageScene" aria-live="polite"></section>
           <section class="canvas-heading object" data-id="heading" data-type="text" style="left:145px;top:90px">
-            <span>Research stage · Team workshop</span><h1 contenteditable="true">Why does our project lose direction?</h1><p>Scattered observations from Vivian, Kevin, Amy and Leo</p>
+            <span>研究阶段 · 团队工作坊</span><h1 contenteditable="true">为什么我们的项目会失去方向？</h1><p>来自 Vivian、Kevin、Amy 与 Leo 的分散观察</p>
           </section>
-          <article class="sticky object yellow" data-id="n1" data-type="sticky" style="left:170px;top:300px"><p contenteditable="true">Research findings are difficult to connect.</p><footer><span>Vivian · 10:12</span><button class="note-vote">♡ <b>3</b></button></footer></article>
-          <article class="sticky object blue tilt-right" data-id="n2" data-type="sticky" style="left:490px;top:260px"><p contenteditable="true">Tutor feedback is interpreted differently by each of us.</p><footer><span>Kevin · 10:18</span><button class="note-vote">♡ <b>5</b></button></footer></article>
-          <article class="sticky object coral tilt-left" data-id="n3" data-type="sticky" style="left:275px;top:530px"><p contenteditable="true">Discussions often end without a clear decision.</p><footer><span>Amy · 10:23</span><button class="note-vote">♡ <b>4</b></button></footer></article>
-          <article class="sticky object green" data-id="n4" data-type="sticky" style="left:700px;top:470px"><p contenteditable="true">Information is spread across too many platforms.</p><footer><span>Leo · 10:31</span><button class="note-vote">♡ <b>2</b></button></footer></article>
-          <article class="sticky object yellow tilt-right" data-id="n5" data-type="sticky" style="left:900px;top:245px"><p contenteditable="true">Different members focus on different parts of the feedback.</p><footer><span>Kevin · 10:36</span><button class="note-vote">♡ <b>6</b></button></footer></article>
-          <article class="sticky object blue" data-id="n6" data-type="sticky" style="left:1060px;top:510px"><p contenteditable="true">We collect many references but struggle to synthesise them.</p><footer><span>Amy · 10:42</span><button class="note-vote">♡ <b>4</b></button></footer></article>
-          <article class="sticky object green tilt-left" data-id="n7" data-type="sticky" style="left:505px;top:700px"><p contenteditable="true">The next action is unclear after each meeting.</p><footer><span>Vivian · 10:48</span><button class="note-vote">♡ <b>7</b></button></footer></article>
-          <article class="sticky object coral" data-id="n8" data-type="sticky" style="left:865px;top:760px"><p contenteditable="true">No one consistently maintains the project structure.</p><footer><span>Leo · 10:53</span><button class="note-vote">♡ <b>5</b></button></footer></article>
-          <article class="sticky object yellow tilt-left" data-id="n9" data-type="sticky" style="left:225px;top:845px"><p contenteditable="true">Team roles change throughout the project.</p><footer><span>Vivian · 11:02</span><button class="note-vote">♡ <b>8</b></button></footer></article>
-          <article class="sticky object blue tilt-right" data-id="n10" data-type="sticky" style="left:1130px;top:850px"><p contenteditable="true">Some decisions happen only because the deadline is close.</p><footer><span>Kevin · 11:09</span><button class="note-vote">♡ <b>3</b></button></footer></article>
+          <article class="sticky object yellow" data-id="n1" data-type="sticky" style="left:170px;top:300px"><p contenteditable="true">研究发现之间很难建立联系。</p><footer><span>Vivian · 10:12</span><button class="note-vote">♡ <b>3</b></button></footer></article>
+          <article class="sticky object blue tilt-right" data-id="n2" data-type="sticky" style="left:490px;top:260px"><p contenteditable="true">每个人对导师反馈的理解都不一样。</p><footer><span>Kevin · 10:18</span><button class="note-vote">♡ <b>5</b></button></footer></article>
+          <article class="sticky object coral tilt-left" data-id="n3" data-type="sticky" style="left:275px;top:530px"><p contenteditable="true">讨论经常在没有明确决定的情况下结束。</p><footer><span>Amy · 10:23</span><button class="note-vote">♡ <b>4</b></button></footer></article>
+          <article class="sticky object green" data-id="n4" data-type="sticky" style="left:700px;top:470px"><p contenteditable="true">信息分散在太多不同的平台中。</p><footer><span>Leo · 10:31</span><button class="note-vote">♡ <b>2</b></button></footer></article>
+          <article class="sticky object yellow tilt-right" data-id="n5" data-type="sticky" style="left:900px;top:245px"><p contenteditable="true">不同成员关注反馈里的不同部分。</p><footer><span>Kevin · 10:36</span><button class="note-vote">♡ <b>6</b></button></footer></article>
+          <article class="sticky object blue" data-id="n6" data-type="sticky" style="left:1060px;top:510px"><p contenteditable="true">我们收集了很多参考资料，却难以归纳。</p><footer><span>Amy · 10:42</span><button class="note-vote">♡ <b>4</b></button></footer></article>
+          <article class="sticky object green tilt-left" data-id="n7" data-type="sticky" style="left:505px;top:700px"><p contenteditable="true">每次会议后，下一步行动仍然不清晰。</p><footer><span>Vivian · 10:48</span><button class="note-vote">♡ <b>7</b></button></footer></article>
+          <article class="sticky object coral" data-id="n8" data-type="sticky" style="left:865px;top:760px"><p contenteditable="true">没有人持续维护项目结构。</p><footer><span>Leo · 10:53</span><button class="note-vote">♡ <b>5</b></button></footer></article>
+          <article class="sticky object yellow tilt-left" data-id="n9" data-type="sticky" style="left:225px;top:845px"><p contenteditable="true">团队角色会随着项目不断变化。</p><footer><span>Vivian · 11:02</span><button class="note-vote">♡ <b>8</b></button></footer></article>
+          <article class="sticky object blue tilt-right" data-id="n10" data-type="sticky" style="left:1130px;top:850px"><p contenteditable="true">有些决定只是因为截止日期临近才产生。</p><footer><span>Kevin · 11:09</span><button class="note-vote">♡ <b>3</b></button></footer></article>
 
           <div class="comment-pin object" data-id="c1" data-type="comment" style="left:650px;top:425px"><span>2</span><div class="comment-popover"><strong>Amy</strong><p>Are we solving the feedback or our collaboration process?</p><button>Reply</button></div></div>
           <div class="member-cursor cursor-mei"><i></i><label>Vivian</label></div><div class="member-cursor cursor-jon"><i></i><label>Kevin</label></div>
@@ -77,12 +171,12 @@
       </section>
 
       <aside class="ai-panel" id="aiPanel">
-        <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · team partner</strong><small><span class="live-dot"></span>Ready when your team asks</small></div></div><button class="icon-btn" id="closeAI" aria-label="Collapse AI sidebar">×</button></div>
-        <div class="ai-tabs"><button class="active" data-tab="insights">Understanding</button><button data-tab="chat">Discussion</button><button data-tab="progress">Memory</button><button data-tab="activity">Activity</button></div>
+        <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · 协作伙伴</strong><small><span class="live-dot"></span>等待团队邀请</small></div></div><button class="icon-btn" id="closeAI" aria-label="收起 AI 侧栏">×</button></div>
+        <div class="ai-tabs"><button class="active" data-tab="insights">理解</button><button data-tab="chat">讨论</button><button data-tab="progress">记忆</button><button data-tab="activity">报告</button></div>
         <div class="ai-content" id="insightsPanel">
-          <div class="partner-status"><span>HUMAN CONTROL</span><strong>Your team leads. Pip supports.</strong><p>Pip only looks at an area after someone selects it and asks for reflection.</p></div>
-          <section class="understanding-card"><header><span>Current understanding</span><small>Not yet confirmed</small></header><h3>What makes teams lose a shared direction?</h3><div class="understanding-row"><span>Current stage</span><strong>Research</strong></div><div class="understanding-row"><span>Evidence selected</span><strong>None</strong></div></section>
-          <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>Reflection starts with your selection</strong><p>Drag around a set of notes, then choose <b>AI Reflect</b>. Pip will surface patterns and questions without changing the canvas.</p></div></section>
+          <div class="partner-status"><span>人类控制</span><strong>团队主导，Pip 提供支持。</strong><p>只有当你框选内容并主动请求时，Pip 才会分析该区域。</p></div>
+          <section class="understanding-card"><header><span>当前理解</span><small>尚未确认</small></header><h3>是什么让团队失去共同方向？</h3><div class="understanding-row"><span>当前阶段</span><strong>研究</strong></div><div class="understanding-row"><span>已选择证据</span><strong>无</strong></div></section>
+          <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>从你的选择开始反思</strong><p>框选一组便签，再选择 <b>AI 分析</b>。Pip 只呈现模式与问题，不改变画布。</p></div></section>
         </div>
         <div class="ai-content hidden" id="chatPanel">
           <div class="ai-message"><span class="ai-face tiny"><i></i><b></b></span><div><p>I am ready when you request support. Select part of the canvas or ask a question to begin.</p><time>Now</time></div></div>
@@ -96,13 +190,59 @@
         </div>
         <div class="ai-content hidden" id="activityPanel"><div class="activity-head"><strong>Activity History</strong><p>Canvas and AI actions appear here. Applied AI changes can be undone.</p></div><div class="activity-list" id="activityList"></div></div>
         <div class="analysis-view hidden" id="analysisView"><div class="analysis-head"><span class="ai-face"><i></i><b></b></span><div><strong>Analysis of <span id="analysisCount">0</span> notes</strong><small>Pip found patterns, not answers</small></div><button id="closeAnalysis">×</button></div><div class="analysis-loading" id="analysisLoading"><span></span><p>Reading the team's notes...</p></div><div class="analysis-results hidden" id="analysisResults"></div></div>
-        <form class="ai-input" id="aiForm"><div class="composer-heading"><label for="aiPrompt">Ask the team partner</label><span>Only selected canvas content is included</span></div><div class="composer-shell"><textarea id="aiPrompt" rows="2" placeholder="What should we reflect on together?"></textarea><div class="composer-actions"><div><button type="button" id="attachBtn" aria-label="Attach files">＋ <span>Attach</span></button><button type="button" id="voiceBtn" aria-label="Voice input">● <span>Voice</span></button></div><button type="submit" class="send-btn" aria-label="Ask AI Partner">Ask Pip <b>↗</b></button></div></div><div class="prompt-chips"><button type="button" class="quick-ai" data-quick="Summarise">Summarise selection</button><button type="button" class="quick-ai" data-quick="Next Step">Suggest a discussion prompt</button></div></form>
+        <form class="ai-input" id="aiForm"><div class="recording-status hidden" id="recordingStatus"><span></span><div><strong>正在录音 <time id="recordingTimer">00:00</time></strong><small>停止后保存在当前浏览器的“讨论”中，不会自动下载或上传</small></div><button type="button" id="recordingStopBtn">停止</button></div><div class="composer-heading"><label for="aiPrompt">询问协作伙伴</label><span>只包含你主动选择的画布内容</span></div><div class="composer-shell"><textarea id="aiPrompt" rows="2" placeholder="我们应该一起反思什么？"></textarea><div class="composer-actions"><div><button type="button" id="attachBtn" aria-label="添加附件">＋ <span>附件</span></button><button type="button" id="voiceBtn" aria-label="语音输入">● <span>语音</span></button></div><button type="submit" class="send-btn" aria-label="询问 Pip">询问 Pip <b>↗</b></button></div></div><div class="recording-location">录音保存在当前浏览器的网站数据中，可逐条删除或全部清空。</div><div class="prompt-chips"><button type="button" class="quick-ai" data-quick="Summarise">总结所选内容</button><button type="button" class="quick-ai" data-quick="Next Step">建议讨论问题</button></div></form>
       </aside>
     </main>
     <input type="file" id="imageInput" accept="image/*" hidden />
     <div class="toast" id="toast" role="status"></div>
     <dialog id="projectDialog"><button class="dialog-close">×</button><h2>Your projects</h2><div class="project-list"><button class="active"><span>SD</span><div><strong>Shared Direction</strong><small>Research · updated now</small></div></button><button><span>CM</span><div><strong>Campus Map</strong><small>Research · yesterday</small></div></button><button id="newProjectBtn"><span>＋</span><div><strong>Create blank page</strong><small>No frames, categories, or generated content</small></div></button></div></dialog>
   </div>
-  <script src="./script.js"></script>
+
+  <div class="mobile-app" id="mobileApp">
+    <header class="mobile-header"><button class="mobile-brand">C</button><div><small>共同方向</small><strong id="mobileStageHeader">研究 · 自由记录</strong></div><button class="mobile-help" id="mobileHelpBtn" aria-label="打开新手教程">?</button><button class="language-switch mobile-language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button><span class="mobile-online" aria-label="当前在线成员"><i></i><b id="mobileOnlineMetric">0 / 4</b></span></header>
+    <main class="mobile-main">
+      <section class="mobile-view active" data-mobile-view="canvas">
+        <nav class="mobile-project-stages" id="mobileProjectStages" aria-label="切换项目阶段">
+          <button class="active" data-mobile-stage="Research"><b>研究</b><small>收集</small></button>
+          <button data-mobile-stage="Define"><b>定义</b><small>聚焦</small></button>
+          <button data-mobile-stage="Ideate"><b>构思</b><small>发散</small></button>
+          <button data-mobile-stage="Develop"><b>开发</b><small>测试</small></button>
+          <button data-mobile-stage="Review"><b>回顾</b><small>确认</small></button>
+        </nav>
+        <div class="mobile-stage-card"><span>01 / 05 · 研究</span><h1>为什么我们的项目会失去方向？</h1><p>当前目标：记录事实、观察和反馈。</p><button id="mobileStageInfo">查看阶段说明</button></div>
+        <section class="mobile-stage-workspace" id="mobileStageWorkspace"></section>
+        <div class="mobile-compose"><button id="mobileAddNote">＋</button><div><strong id="mobileComposeTitle">添加一个观察</strong><small id="mobileComposeHint">录音仅保存在本浏览器，可在“我的”清空</small></div><button id="mobileVoiceBtn"><span>●</span>录音</button></div>
+        <section class="mobile-note-list" id="mobileNoteList">
+          <article class="mobile-note yellow"><p>研究发现之间很难建立联系。</p><footer><span>Vivian · 10:12</span><button>♡ 3</button></footer></article>
+          <article class="mobile-note blue"><p>每个人对导师反馈的理解都不一样。</p><footer><span>Kevin · 10:18</span><button>♡ 5</button></footer></article>
+          <article class="mobile-note coral"><p>讨论经常在没有明确决定的情况下结束。</p><footer><span>Amy · 10:23</span><button>♡ 4</button></footer></article>
+        </section>
+      </section>
+      <section class="mobile-view" data-mobile-view="discuss"><div class="mobile-page-title"><span>团队讨论</span><h1>问题与语音记录</h1></div><div class="mobile-discussion-empty"><span>?</span><strong>还没有新的讨论</strong><p>提出问题或录制一段语音，内容会同步到团队工作区。</p></div></section>
+      <section class="mobile-view" data-mobile-view="robot"><div class="mobile-page-title"><span>实体设备</span><h1>Pip 机器人</h1></div><div class="robot-card"><div class="ai-face"><i></i><b></b></div><strong id="mobileRobotStatus">在线，等待指令</strong><p id="mobileRobotMessage">机器人只在主持人确认后沿固定轨迹移动。</p><div class="mobile-route-map" id="mobileRouteMap" aria-label="机器人固定路径"></div><dl><div><dt>当前位置</dt><dd id="mobileRobotPosition">起点</dd></div><div><dt>电量</dt><dd>82%</dd></div><div><dt>当前任务</dt><dd id="mobileRobotTask">等待团队开始</dd></div></dl><button id="mobileRobotRequest">请求机器人收集意见</button></div></section>
+      <section class="mobile-view" data-mobile-view="me"><div class="mobile-page-title"><span>参与记录</span><h1>我的贡献</h1></div><div class="mobile-me-card"><strong>今天</strong><div><span>新增观点</span><b>3</b></div><div><span>参与投票</span><b>5</b></div><div><span>语音记录</span><b id="mobileVoiceCount">0</b></div><p>这些数据用于帮助参与更公平，不用于成员排名。</p></div><div class="recording-storage-card"><span>录音存储</span><strong>当前浏览器的网站数据</strong><p>不会自动进入电脑“下载”文件夹，也不会上传到云端。清除后无法恢复。</p><button id="deleteAllRecordings" type="button">删除全部录音</button></div></section>
+    </main>
+    <nav class="mobile-nav"><button class="active" data-mobile-tab="canvas"><span>□</span>画布</button><button data-mobile-tab="discuss"><span>○</span>讨论</button><button data-mobile-tab="robot"><span>◇</span>机器人</button><button data-mobile-tab="me"><span>·</span>我的</button></nav>
+    <div class="mobile-recording-sheet hidden" id="mobileRecordingSheet"><span class="recording-pulse"></span><strong>正在录音</strong><time id="mobileRecordingTimer">00:00</time><p>停止后保存在当前浏览器，不会自动下载或上传</p><button id="mobileStopRecording">停止并保存</button></div>
+  </div>
+
+  <dialog class="note-entry-dialog" id="noteEntryDialog" aria-labelledby="noteEntryTitle">
+    <form id="noteEntryForm">
+      <header>
+        <div><small id="noteEntryKicker">新增内容</small><h2 id="noteEntryTitle">先写下你的想法</h2></div>
+        <button type="button" id="closeNoteEntry" aria-label="关闭">×</button>
+      </header>
+      <label for="noteEntryInput" id="noteEntryLabel">内容</label>
+      <textarea id="noteEntryInput" rows="4" maxlength="240" placeholder="输入完成后再添加，不会生成空白便签"></textarea>
+      <fieldset class="note-entry-categories hidden" id="noteEntryCategories">
+        <legend>添加到哪个分类？</legend>
+        <label><input type="radio" name="defineCategory" value="facts"><span><b>事实</b><small>可验证的资料与观察</small></span></label>
+        <label><input type="radio" name="defineCategory" value="readings"><span><b>不同解释</b><small>成员对证据的不同理解</small></span></label>
+        <label><input type="radio" name="defineCategory" value="signals"><span><b>协作信号</b><small>重复、停滞或参与情况</small></span></label>
+      </fieldset>
+      <footer><button type="button" id="cancelNoteEntry">取消</button><span id="noteEntryCount">0 / 240</span><button type="submit" id="submitNoteEntry" disabled>添加</button></footer>
+    </form>
+  </dialog>
+  <script src="./script.js?v=20260728-4"></script>
 </body>
 </html>
