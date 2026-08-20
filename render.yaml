@@ -1,10 +1,12 @@
 services:
   - type: web
-    name: colab-canvas
+    name: colab-ai-workspace-vivian
     runtime: python
     plan: free
+    region: frankfurt
     buildCommand: ""
     startCommand: python3 server.py
+    healthCheckPath: /api/status
     autoDeploy: true
     envVars:
       - key: DEEPSEEK_API_KEY
