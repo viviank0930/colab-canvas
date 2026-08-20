@@ -51,6 +51,24 @@
                 <button type="button" id="teamSizeUp" aria-label="增加团队人数">＋</button>
               </div>
             </div>
+            <fieldset class="support-mode-field">
+              <legend>这次希望 Pip 怎样参与？</legend>
+              <p>AI 可以观察协作节奏，但不会自动整理或分析整个画布。</p>
+              <div class="support-mode-options">
+                <label>
+                  <input type="radio" name="supportMode" value="observe" checked>
+                  <span><b>观察优先</b><small>持续停滞后先询问，再提供最小支持</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="supportMode" value="signal">
+                  <span><b>轻提示</b><small>较早显示协作信号，仍需团队同意</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="supportMode" value="request">
+                  <span><b>仅主动邀请</b><small>只有团队主动请求时 Pip 才出现</small></span>
+                </label>
+              </div>
+            </fieldset>
             <label for="joinName">你希望团队怎样称呼你？</label>
             <div class="join-name-row"><input id="joinName" name="memberName" maxlength="20" autocomplete="name" placeholder="输入你的名字" required><button type="submit">加入讨论 <b>↗</b></button></div>
             <p class="join-form-error hidden" id="joinFormError">请输入名字后再加入。</p>
@@ -83,7 +101,7 @@
       <div class="presence" aria-label="当前在线成员"><div class="presence-avatars" id="presenceAvatars"></div><span class="presence-total"><b id="presenceOnlineMetric">0 / 4</b><span>在线</span></span></div>
       <button class="language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button>
       <button class="tour-help" id="openTour" aria-label="打开新手教程">?</button>
-      <button class="facilitator-btn" id="facilitatorBtn"><span>观察</span><i id="signalCount">2</i></button>
+      <button class="facilitator-btn" id="facilitatorBtn"><span class="ai-state-dot"></span><span id="aiStateLabel">AI 观察中</span><i id="signalCount">2</i></button>
       <button class="ai-toggle" id="aiToggle"><span class="ai-face mini"><i></i><b></b></span>Pip</button>
       <button class="share-btn" id="shareBtn">邀请成员</button>
     </header>
@@ -133,14 +151,23 @@
         </section>
 
         <aside class="facilitator-tray hidden" id="facilitatorTray" aria-label="主持人观察">
-          <header><div><small>仅主持人可见</small><strong>协作观察</strong></div><button id="closeFacilitator" aria-label="关闭">×</button></header>
+          <header><div><small>当前 AI 状态</small><strong id="facilitatorStateTitle">安静观察</strong><p id="facilitatorStateDescription">团队仍在推进，Pip 不会打断讨论。</p></div><button id="closeFacilitator" aria-label="关闭">×</button></header>
           <article class="signal-card primary-signal">
-            <span>讨论停滞</span><strong>过去 8 分钟没有出现新主题</strong><p>关于“如何整合导师反馈”的讨论已重复出现 4 次。</p>
-            <div><button id="viewRepeatedBtn">查看相关内容</button><button id="promptTeamBtn">邀请讨论</button></div>
+            <span>持续观察到协作信号</span><strong>过去 8 分钟没有出现新主题</strong><p>关于“如何整合导师反馈”的讨论已重复出现 4 次。Pip 会先等待团队自行恢复。</p>
+            <div><button id="viewRepeatedBtn">查看相关内容</button><button id="promptTeamBtn">询问是否需要支持</button></div>
           </article>
           <article class="signal-card"><span>参与平衡</span><strong>有 2 位成员尚未回应</strong><p>这是参与提示，不用于评价个人贡献。</p><button id="dismissSignalBtn">暂时忽略</button></article>
-          <footer>AI 只提出提醒，不会自动打断团队或控制机器人。</footer>
+          <footer id="facilitatorModeNote">当前为“观察优先”。内容分析仍然只针对团队主动选择的区域。</footer>
         </aside>
+        <section class="intervention-prompt hidden" id="interventionPrompt" aria-live="polite">
+          <header><span class="ai-face tiny"><i></i><b></b></span><div><small id="interventionKicker">Pip 正在征求同意</small><strong id="interventionTitle">需要一个提示吗？</strong></div><button id="closeIntervention" aria-label="关闭">×</button></header>
+          <p id="interventionMessage">我注意到这个话题已经重复了一段时间。你们想继续自己讨论，还是希望我提出一个反思问题？</p>
+          <div class="intervention-actions" id="interventionActions">
+            <button id="continueWithoutAi">继续讨论</button>
+            <button id="askWhyIntervention">查看原因</button>
+            <button class="primary" id="acceptAiPrompt">给一个问题</button>
+          </div>
+        </section>
         <div class="canvas" id="canvas">
           <svg class="connection-layer" id="connectionLayer" width="2400" height="1600" aria-hidden="true"></svg>
           <section class="stage-scene research-scene" id="stageScene" aria-live="polite"></section>
@@ -171,10 +198,10 @@
       </section>
 
       <aside class="ai-panel" id="aiPanel">
-        <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · 协作伙伴</strong><small><span class="live-dot"></span>等待团队邀请</small></div></div><button class="icon-btn" id="closeAI" aria-label="收起 AI 侧栏">×</button></div>
+        <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · 协作伙伴</strong><small><span class="live-dot"></span><span id="aiPanelState">正在安静观察</span></small></div></div><button class="icon-btn" id="closeAI" aria-label="收起 AI 侧栏">×</button></div>
         <div class="ai-tabs"><button class="active" data-tab="insights">理解</button><button data-tab="chat">讨论</button><button data-tab="progress">记忆</button><button data-tab="activity">报告</button></div>
         <div class="ai-content" id="insightsPanel">
-          <div class="partner-status"><span>人类控制</span><strong>团队主导，Pip 提供支持。</strong><p>只有当你框选内容并主动请求时，Pip 才会分析该区域。</p></div>
+          <div class="partner-status"><span>人类控制</span><strong>团队主导，Pip 提供支持。</strong><p>只有当你框选内容并主动请求时，Pip 才会分析该区域。</p><div class="partner-support-mode"><small>本次支持方式</small><b id="partnerSupportMode">观察优先</b></div></div>
           <section class="understanding-card"><header><span>当前理解</span><small>尚未确认</small></header><h3>是什么让团队失去共同方向？</h3><div class="understanding-row"><span>当前阶段</span><strong>研究</strong></div><div class="understanding-row"><span>已选择证据</span><strong>无</strong></div></section>
           <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>从你的选择开始反思</strong><p>框选一组便签，再选择 <b>AI 分析</b>。Pip 只呈现模式与问题，不改变画布。</p></div></section>
         </div>
@@ -219,7 +246,7 @@
         </section>
       </section>
       <section class="mobile-view" data-mobile-view="discuss"><div class="mobile-page-title"><span>团队讨论</span><h1>问题与语音记录</h1></div><div class="mobile-discussion-empty"><span>?</span><strong>还没有新的讨论</strong><p>提出问题或录制一段语音，内容会同步到团队工作区。</p></div></section>
-      <section class="mobile-view" data-mobile-view="robot"><div class="mobile-page-title"><span>实体设备</span><h1>Pip 机器人</h1></div><div class="robot-card"><div class="ai-face"><i></i><b></b></div><strong id="mobileRobotStatus">在线，等待指令</strong><p id="mobileRobotMessage">机器人只在主持人确认后沿固定轨迹移动。</p><div class="mobile-route-map" id="mobileRouteMap" aria-label="机器人固定路径"></div><dl><div><dt>当前位置</dt><dd id="mobileRobotPosition">起点</dd></div><div><dt>电量</dt><dd>82%</dd></div><div><dt>当前任务</dt><dd id="mobileRobotTask">等待团队开始</dd></div></dl><button id="mobileRobotRequest">请求机器人收集意见</button></div></section>
+      <section class="mobile-view" data-mobile-view="robot"><div class="mobile-page-title"><span>实体设备</span><h1>Pip 机器人</h1></div><div class="mobile-ai-support-state"><span class="ai-state-dot"></span><div><small>AI 当前状态</small><strong id="mobileAiState">正在安静观察</strong></div></div><div class="robot-card"><div class="ai-face"><i></i><b></b></div><strong id="mobileRobotStatus">在线，等待指令</strong><p id="mobileRobotMessage">机器人只在主持人确认后沿固定轨迹移动。</p><div class="mobile-route-map" id="mobileRouteMap" aria-label="机器人固定路径"></div><dl><div><dt>当前位置</dt><dd id="mobileRobotPosition">起点</dd></div><div><dt>电量</dt><dd>82%</dd></div><div><dt>当前任务</dt><dd id="mobileRobotTask">等待团队开始</dd></div></dl><button id="mobileRobotRequest">请求机器人收集意见</button></div></section>
       <section class="mobile-view" data-mobile-view="me"><div class="mobile-page-title"><span>参与记录</span><h1>我的贡献</h1></div><div class="mobile-me-card"><strong>今天</strong><div><span>新增观点</span><b>3</b></div><div><span>参与投票</span><b>5</b></div><div><span>语音记录</span><b id="mobileVoiceCount">0</b></div><p>这些数据用于帮助参与更公平，不用于成员排名。</p></div><div class="recording-storage-card"><span>录音存储</span><strong>当前浏览器的网站数据</strong><p>不会自动进入电脑“下载”文件夹，也不会上传到云端。清除后无法恢复。</p><button id="deleteAllRecordings" type="button">删除全部录音</button></div></section>
     </main>
     <nav class="mobile-nav"><button class="active" data-mobile-tab="canvas"><span>□</span>画布</button><button data-mobile-tab="discuss"><span>○</span>讨论</button><button data-mobile-tab="robot"><span>◇</span>机器人</button><button data-mobile-tab="me"><span>·</span>我的</button></nav>
@@ -241,6 +268,33 @@
         <label><input type="radio" name="defineCategory" value="signals"><span><b>协作信号</b><small>重复、停滞或参与情况</small></span></label>
       </fieldset>
       <footer><button type="button" id="cancelNoteEntry">取消</button><span id="noteEntryCount">0 / 240</span><button type="submit" id="submitNoteEntry" disabled>添加</button></footer>
+    </form>
+  </dialog>
+  <dialog class="stage-reflection-dialog" id="stageReflectionDialog" aria-labelledby="stageReflectionTitle">
+    <form method="dialog" id="stageReflectionForm">
+      <header><div><small>阶段结束前</small><h2 id="stageReflectionTitle">先回顾团队怎样完成了这一阶段</h2></div><button type="button" id="closeStageReflection" aria-label="关闭">×</button></header>
+      <p>这些记录只用于调整下一阶段的支持方式，不用于成员排名。</p>
+      <div class="reflection-metrics">
+        <article><strong id="metricRecovered">0</strong><span>团队自行恢复</span></article>
+        <article><strong id="metricPrompts">0</strong><span>AI 主动询问</span></article>
+        <article><strong id="metricAccepted">0</strong><span>接受支持</span></article>
+        <article><strong id="metricDeclined">0</strong><span>继续自主讨论</span></article>
+      </div>
+      <fieldset class="next-support-options">
+        <legend>下一阶段希望 Pip 怎样参与？</legend>
+        <label><input type="radio" name="nextSupport" value="lower"><span><b>降低支持</b><small>下一阶段仅在团队主动邀请时出现</small></span></label>
+        <label><input type="radio" name="nextSupport" value="keep" checked><span><b>保持当前方式</b><small id="keepSupportDescription">继续使用观察优先</small></span></label>
+        <label><input type="radio" name="nextSupport" value="custom"><span><b>重新选择</b><small>进入下一阶段前选择新的支持方式</small></span></label>
+        <div class="custom-support-picker hidden" id="customSupportPicker">
+          <label for="customSupportMode">新的支持方式</label>
+          <select id="customSupportMode">
+            <option value="observe">观察优先</option>
+            <option value="signal">轻提示</option>
+            <option value="request">仅主动邀请</option>
+          </select>
+        </div>
+      </fieldset>
+      <footer><button type="button" id="cancelStageReflection">返回画布</button><button type="submit" id="confirmStageReflection">确认并进入下一阶段</button></footer>
     </form>
   </dialog>
   <script src="./script.js?v=20260728-4"></script>
