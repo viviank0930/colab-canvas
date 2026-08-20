@@ -6,6 +6,15 @@ let spaceDown=false,activity=[],pendingAiSelection=[];
 
 const LANGUAGE_STORAGE_KEY='colab_interface_language';
 let currentLanguage=localStorage.getItem(LANGUAGE_STORAGE_KEY)==='en'?'en':'zh';
+const SUPPORT_MODE_STORAGE_KEY='colab_support_mode';
+const SUPPORT_MODES={
+  observe:{zh:'观察优先',en:'Observe first',noteZh:'当前为“观察优先”。内容分析仍然只针对团队主动选择的区域。',noteEn:'Observe first is active. Content analysis still applies only to areas selected by the team.'},
+  signal:{zh:'轻提示',en:'Light signals',noteZh:'当前为“轻提示”。Pip 可以较早显示协作信号，但仍需团队同意。',noteEn:'Light signals is active. Pip may surface collaboration signals earlier, but the team still decides whether to receive support.'},
+  request:{zh:'仅主动邀请',en:'On request only',noteZh:'当前为“仅主动邀请”。Pip 不会主动询问，只响应团队请求。',noteEn:'On request only is active. Pip never initiates a prompt and responds only when the team asks.'}
+};
+let supportMode=SUPPORT_MODES[localStorage.getItem(SUPPORT_MODE_STORAGE_KEY)]?localStorage.getItem(SUPPORT_MODE_STORAGE_KEY):'observe';
+let aiSupportState='observing',aiStateTimer=null,interventionStage='permission',pendingProjectStageIndex=null;
+const interventionStats={recovered:0,prompts:0,accepted:0,declined:0};
 const languageOriginalText=new WeakMap(),languageOriginalAttributes=new WeakMap();
 const EN_UI={
   '团队邀请':'Team invite',
@@ -20,6 +29,10 @@ const EN_UI={
   '最后由团队确认哪些是内容问题，哪些是协作过程问题。':'The team will confirm which issues concern the work and which concern the collaboration process.',
   '记录':'Capture','讨论':'Discuss','投票':'Vote','回顾':'Review',
   '这次讨论共有几人？':'How many people are in this session?','团队人数包含你自己，可在进入前调整。':'Include yourself. You can adjust this before entering.','选择团队人数':'Choose team size','减少团队人数':'Decrease team size','增加团队人数':'Increase team size',
+  '这次希望 Pip 怎样参与？':'How should Pip take part in this session?','AI 可以观察协作节奏，但不会自动整理或分析整个画布。':'AI may observe collaboration rhythm, but it never organises or analyses the whole canvas automatically.',
+  '观察优先':'Observe first','持续停滞后先询问，再提供最小支持':'Wait through a sustained stall, then ask before offering minimal support',
+  '轻提示':'Light signals','较早显示协作信号，仍需团队同意':'Surface collaboration signals earlier, while the team still decides',
+  '仅主动邀请':'On request only','只有团队主动请求时 Pip 才出现':'Pip appears only when the team asks',
   '你希望团队怎样称呼你？':'What should the team call you?','输入你的名字':'Enter your name','加入讨论':'Join discussion','请输入名字后再加入。':'Enter your name to join.','当前在线成员':'Members online now','空位':'Open seat','等待成员':'Waiting for member',
   'Pip 不会预先整理画布，只在团队主动选择内容并请求后提供建议。':'Pip never pre-organises the canvas. It offers suggestions only after the team selects content and asks for support.',
   '跳过教程':'Skip tutorial','01 · 欢迎':'01 · Welcome','先由人思考，':'People think first,','再邀请 AI 参与。':'then invite AI.',
@@ -51,6 +64,11 @@ const EN_UI={
   '已有足够证据，可以描述主要模式。':'There is enough evidence to describe the main patterns.',
   '完成研究，进入定义':'Complete Research, enter Define','完成定义，进入构思':'Complete Define, enter Ideate','完成构思，进入开发':'Complete Ideate, enter Develop','完成开发，进入回顾':'Complete Develop, enter Review','完成回顾，进入研究':'Complete Review, return to Research',
   '仅主持人可见':'Host only','协作观察':'Collaboration signals','讨论停滞':'Discussion stalled',
+  '当前 AI 状态':'Current AI state','安静观察':'Observing quietly','团队仍在推进，Pip 不会打断讨论。':'The team is still moving forward, so Pip will not interrupt.',
+  '持续观察到协作信号':'Persistent collaboration signal','Pip 会先等待团队自行恢复。':'Pip waits first to see whether the team recovers on its own.',
+  '询问是否需要支持':'Ask whether support is needed','本次支持方式':'Support mode for this session','AI 观察中':'AI observing','正在安静观察':'Observing quietly',
+  'Pip 正在征求同意':'Pip is asking permission','需要一个提示吗？':'Would a prompt help?','我注意到这个话题已经重复了一段时间。你们想继续自己讨论，还是希望我提出一个反思问题？':'I noticed that this topic has been repeating for a while. Would you like to continue discussing it yourselves, or would a reflective question help?',
+  '继续讨论':'Continue discussing','查看原因':'See why','给一个问题':'Give us one question',
   '过去 8 分钟没有出现新主题':'No new theme has appeared for 8 minutes',
   '关于“如何整合导师反馈”的讨论已重复出现 4 次。':'The topic of integrating tutor feedback has repeated four times.',
   '查看相关内容':'View related content','邀请讨论':'Invite discussion','参与平衡':'Participation balance','有 2 位成员尚未回应':'Two members have not responded',
@@ -77,6 +95,11 @@ const EN_UI={
   '新增观点':'Ideas added','参与投票':'Votes cast','语音记录':'Voice notes','这些数据用于帮助参与更公平，不用于成员排名。':'These records support fair participation and are never used to rank members.',
   '录音存储':'Recording storage','当前浏览器的网站数据':'This browser’s site data','不会自动进入电脑“下载”文件夹，也不会上传到云端。清除后无法恢复。':'Nothing is automatically downloaded or uploaded. Deleted recordings cannot be recovered.',
   '删除全部录音':'Delete all recordings','画布':'Canvas','机器人':'Robot','我的':'Me','停止并保存':'Stop and save',
+  '阶段结束前':'Before ending the stage','先回顾团队怎样完成了这一阶段':'First, review how the team completed this stage','这些记录只用于调整下一阶段的支持方式，不用于成员排名。':'These records only adjust support for the next stage. They are never used to rank members.',
+  '团队自行恢复':'Team recovered independently','AI 主动询问':'AI asked proactively','接受支持':'Support accepted','继续自主讨论':'Continued independently',
+  '下一阶段希望 Pip 怎样参与？':'How should Pip take part in the next stage?','降低支持':'Reduce support','下一阶段仅在团队主动邀请时出现':'Pip appears only when the team asks in the next stage',
+  '保持当前方式':'Keep current mode','继续使用观察优先':'Continue with Observe first','重新选择':'Choose again','进入下一阶段前选择新的支持方式':'Choose a new support mode before entering the next stage',
+  '新的支持方式':'New support mode','返回画布':'Return to canvas','确认并进入下一阶段':'Confirm and enter the next stage',
   '停止后保存在当前浏览器，不会自动下载或上传':'Saved in this browser when stopped. It will not download or upload automatically.',
   '这个阶段还没有团队便签':'No team notes in this stage yet','点击上方加号添加第一条内容。':'Tap the plus button above to add the first note.',
   '人在线':' people online','刚刚':'Just now',
@@ -207,6 +230,7 @@ function applyLanguage(language,{persist=true,announce=false}={}){
   if(currentLanguage==='en')translateInterface(document);
   document.title=currentLanguage==='en'?'CoLab - AI Collaboration Workspace':'CoLab - AI 协作空间';
   updateLanguageControls();
+  updateSupportModeUI();
   if(persist)localStorage.setItem(LANGUAGE_STORAGE_KEY,currentLanguage);
   if(announce)notify(currentLanguage==='en'?'Interface language: English':'界面语言：中文');
 }
@@ -219,6 +243,91 @@ function initLanguage(){
   }).observe(document.body,{childList:true,subtree:true});
   applyLanguage(currentLanguage,{persist:false});
 }
+
+function localText(zh,en){return currentLanguage==='en'?en:zh}
+function supportModeName(mode=supportMode){const item=SUPPORT_MODES[mode]||SUPPORT_MODES.observe;return currentLanguage==='en'?item.en:item.zh}
+function updateSupportModeUI(){
+  $$('input[name="supportMode"]').forEach(input=>input.checked=input.value===supportMode);
+  const config=SUPPORT_MODES[supportMode]||SUPPORT_MODES.observe;
+  if($('#partnerSupportMode'))$('#partnerSupportMode').textContent=supportModeName();
+  if($('#facilitatorModeNote'))$('#facilitatorModeNote').textContent=currentLanguage==='en'?config.noteEn:config.noteZh;
+  if($('#keepSupportDescription'))$('#keepSupportDescription').textContent=localText(`继续使用${config.zh}`,`Continue with ${config.en}`);
+  if($('#customSupportMode'))$('#customSupportMode').value=supportMode;
+  setAiSupportState(aiSupportState,{temporary:aiSupportState==='stepped-back'});
+}
+function setSupportMode(mode,{persist=true,announce=false}={}){
+  if(!SUPPORT_MODES[mode])return;
+  supportMode=mode;
+  if(persist)localStorage.setItem(SUPPORT_MODE_STORAGE_KEY,mode);
+  updateSupportModeUI();
+  if(announce)notify(localText(`Pip 已切换为“${SUPPORT_MODES[mode].zh}”`,`Pip support mode: ${SUPPORT_MODES[mode].en}`));
+}
+function stateCopy(state){
+  if(state==='waiting')return{label:localText('AI 正在等待','AI waiting'),panel:localText('等待团队自行恢复','Waiting for the team to recover'),title:localText('先等待团队','Waiting before intervening'),description:localText('Pip 观察到协作信号，但现在不会打断讨论。','Pip noticed a collaboration signal but will not interrupt yet.')};
+  if(state==='asking')return{label:localText('等待团队确认','Waiting for team choice'),panel:localText('正在征求同意','Asking permission'),title:localText('征求团队同意','Asking the team'),description:localText('只有团队同意后，Pip 才会提出一个反思问题。','Pip will ask one reflective question only if the team agrees.')};
+  if(state==='supporting')return{label:localText('提供最小支持','Offering minimal support'),panel:localText('只提供一个问题','One question only'),title:localText('最小支持','Minimal support'),description:localText('Pip 只提出一个问题，不总结、不整理，也不替团队决定。','Pip asks one question without summarising, organising, or deciding for the team.')};
+  if(state==='stepped-back')return{label:localText('Pip 已退出','Pip stepped back'),panel:localText('团队继续主导','The team is leading again'),title:localText('已经退出讨论','Stepped out of the discussion'),description:localText('本次支持已经结束，Pip 返回安静观察。','This support moment is complete. Pip is returning to quiet observation.')};
+  if(supportMode==='request')return{label:localText('等待团队邀请','Waiting for the team'),panel:localText('仅响应主动请求','Responding only on request'),title:localText('等待团队邀请','Waiting for the team'),description:localText('Pip 不会主动询问，只响应团队发起的请求。','Pip will not initiate prompts and responds only when the team asks.')};
+  return{label:localText('AI 观察中','AI observing'),panel:localText('正在安静观察','Observing quietly'),title:localText('安静观察','Observing quietly'),description:localText('团队仍在推进，Pip 不会打断讨论。','The team is still moving forward, so Pip will not interrupt.')};
+}
+function setAiSupportState(state,{temporary=false}={}){
+  aiSupportState=state;
+  document.body.dataset.aiSupportState=state;
+  const copy=stateCopy(state);
+  if($('#aiStateLabel'))$('#aiStateLabel').textContent=copy.label;
+  if($('#aiPanelState'))$('#aiPanelState').textContent=copy.panel;
+  if($('#mobileAiState'))$('#mobileAiState').textContent=copy.panel;
+  if($('#facilitatorStateTitle'))$('#facilitatorStateTitle').textContent=copy.title;
+  if($('#facilitatorStateDescription'))$('#facilitatorStateDescription').textContent=copy.description;
+  clearTimeout(aiStateTimer);
+  if(temporary)aiStateTimer=setTimeout(()=>setAiSupportState('observing'),3600);
+}
+function updateInterventionMetrics(){
+  if($('#metricRecovered'))$('#metricRecovered').textContent=String(interventionStats.recovered);
+  if($('#metricPrompts'))$('#metricPrompts').textContent=String(interventionStats.prompts);
+  if($('#metricAccepted'))$('#metricAccepted').textContent=String(interventionStats.accepted);
+  if($('#metricDeclined'))$('#metricDeclined').textContent=String(interventionStats.declined);
+}
+function openInterventionPrompt(){
+  if(supportMode==='request'){
+    notify(localText('当前为“仅主动邀请”，Pip 不会主动打断团队','Pip is on request only and will not initiate a prompt'));
+    return;
+  }
+  interventionStage='permission';interventionStats.prompts++;updateInterventionMetrics();setAiSupportState('asking');
+  $('#interventionKicker').textContent=localText('Pip 正在征求同意','Pip is asking permission');
+  $('#interventionTitle').textContent=localText('需要一个提示吗？','Would a prompt help?');
+  $('#interventionMessage').textContent=localText('我注意到这个话题已经重复了一段时间。你们想继续自己讨论，还是希望我提出一个反思问题？','I noticed that this topic has been repeating for a while. Would you like to continue discussing it yourselves, or would a reflective question help?');
+  $('#continueWithoutAi').textContent=localText('继续讨论','Continue discussing');
+  $('#askWhyIntervention').classList.remove('hidden');$('#acceptAiPrompt').classList.remove('hidden');
+  $('#interventionPrompt').classList.remove('hidden');$('#facilitatorTray').classList.add('hidden');
+  logActivity('AI asked permission','Pip noticed a persistent signal and asked before offering support');
+}
+function stepBackFromIntervention({recovered=false,declined=false}={}){
+  if(recovered)interventionStats.recovered++;
+  if(declined)interventionStats.declined++;
+  updateInterventionMetrics();$('#interventionPrompt').classList.add('hidden');setAiSupportState('stepped-back',{temporary:true});
+  logActivity('AI stepped back',recovered?'The team chose to continue independently':'Minimal support ended and control returned to the team');
+  notify(localText('Pip 已退出，团队继续主导讨论','Pip stepped back. The team is leading again'));
+}
+function offerMinimalPrompt(){
+  interventionStage='support';interventionStats.accepted++;updateInterventionMetrics();setAiSupportState('supporting');
+  workspace.classList.remove('ai-closed');$('#aiPanel').classList.remove('closed');switchTab('chat');
+  addAi(localText('我只提出一个问题：你们反复讨论的是反馈内容本身，还是彼此理解反馈的方式？我先停在这里，由你们继续讨论。','I will ask one question only: Are you repeatedly discussing the feedback itself, or the way you interpret it together? I will stop here and let the team continue.'));
+  $('#interventionKicker').textContent=localText('最小支持','Minimal support');$('#interventionTitle').textContent=localText('Pip 只提出了一个问题','Pip asked one question');
+  $('#interventionMessage').textContent=localText('这个问题不会改变画布，也不会生成结论。准备好继续时，让 Pip 退出讨论。','This question does not change the canvas or create a conclusion. When ready, let Pip step out of the discussion.');
+  $('#continueWithoutAi').textContent=localText('支持结束，继续讨论','End support and continue');$('#askWhyIntervention').classList.add('hidden');$('#acceptAiPrompt').classList.add('hidden');
+  logActivity('Minimal support accepted','Pip asked one reflective question and did not alter the canvas');
+}
+function openStageReflection(nextIndex){
+  pendingProjectStageIndex=nextIndex;updateInterventionMetrics();
+  const stage=projectStages[projectStageIndex];
+  const stageNameEn={Research:'Research',Define:'Define',Ideate:'Ideate',Develop:'Develop',Review:'Review'}[stage.key]||stage.key;
+  $('#stageReflectionTitle').textContent=localText(`${stage.label}结束前，先回顾团队怎样完成了这一阶段`,`Before leaving ${stageNameEn}, review how the team completed it`);
+  const shouldLower=supportMode!=='request'&&(interventionStats.recovered>0||interventionStats.declined>interventionStats.accepted);
+  const recommendation=$(`input[name="nextSupport"][value="${shouldLower?'lower':'keep'}"]`);if(recommendation)recommendation.checked=true;
+  $('#customSupportPicker').classList.add('hidden');$('#stageReflectionDialog').showModal();
+}
+function resetInterventionStats(){Object.keys(interventionStats).forEach(key=>interventionStats[key]=0);updateInterventionMetrics()}
 
 function notify(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.classList.remove('show'),2200)}
 function transform(){canvas.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;$('#zoomValue').textContent=`${Math.round(zoom*100)}%`}
@@ -305,6 +414,7 @@ const ROOM_ID=(new URLSearchParams(location.search).get('room')||'shared-directi
 const MEMBER_ID=localStorage.getItem('colab_member_id')||`member-${crypto.randomUUID?.()||Math.random().toString(36).slice(2)}`;
 localStorage.setItem('colab_member_id',MEMBER_ID);
 let roomRevision=0,roomStarted=false,roomObserver=null,roomSyncTimer=null,roomPollTimer=null,roomHeartbeatTimer=null,applyingRoomState=false;
+let latestHardwareTranscripts=[];
 const TEAM_SIZE_KEY=`colab_team_size_${ROOM_ID}`;
 let teamSize=Math.max(2,Math.min(12,Number(localStorage.getItem(TEAM_SIZE_KEY))||4)),latestRoomMembers=[],latestRoomRoster=[];
 const STRUCTURED_ITEMS_KEY='colab_structured_stage_items';
@@ -383,6 +493,70 @@ function updateRoomMembers(members=[],roster=latestRoomRoster){
   const mobile=$('.mobile-online');if(mobile)mobile.setAttribute('aria-label',`${count} / ${teamSize} 人在线`);
   renderTeamSize();renderLobbyMembers();
 }
+function renderHardwareTranscripts(records=[]){
+  latestHardwareTranscripts=Array.isArray(records)?records.filter(record=>record.speaker!=='联动检查').slice(-100):[];
+  let panel=$('#hardwareTranscriptPanel');
+  if(!panel){
+    panel=document.createElement('section');
+    panel.id='hardwareTranscriptPanel';
+    panel.className='hardware-transcript-panel';
+    panel.innerHTML='<header><div><strong>ESP32 发言记录</strong><small>语音识别后自动同步到这个房间</small></div><button type="button" id="summariseHardwareBtn">总结发言</button></header><div id="hardwareTranscriptList"></div>';
+    $('#chatPanel').prepend(panel);
+    $('#summariseHardwareBtn').onclick=summariseHardwareTranscripts;
+  }
+  const list=$('#hardwareTranscriptList');
+  if(!latestHardwareTranscripts.length){
+    list.innerHTML='<p class="hardware-transcript-empty">等待 ESP32 发送第一条发言……</p>';
+    return;
+  }
+  list.innerHTML=latestHardwareTranscripts.map(record=>{
+    const stamp=record.created_at?new Date(record.created_at*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+    const kindLabel={question:'提问',answer:'成员观点',feedback:'Pip 反馈'}[record.kind]||'成员观点';
+    return `<article><div><strong>${escapeHtml(String(record.speaker||'ESP32'))} · ${kindLabel}</strong><time>${escapeHtml(stamp)}</time></div><p>${escapeHtml(String(record.text||''))}</p></article>`;
+  }).join('');
+  syncHardwareStickyNotes(latestHardwareTranscripts);
+}
+function syncHardwareStickyNotes(records=[]){
+  let changed=false;
+  const answers=records.filter(record=>(record.kind||'answer')==='answer'&&record.text);
+  answers.forEach((record,index)=>{
+    const transcriptId=String(record.id||`${record.created_at}-${index}`);
+    const safeId=transcriptId.replace(/[^a-zA-Z0-9_-]/g,'').slice(-54);
+    const existing=$(`[data-id="hardware-${safeId}"]`);
+    if(existing){
+      if(existing.dataset.projectStage!=='Research'){existing.dataset.projectStage='Research';changed=true}
+      existing.classList.toggle('stage-object-hidden',projectStages[projectStageIndex]?.key!=='Research');
+      return;
+    }
+    const el=document.createElement('article');
+    el.dataset.id=`hardware-${safeId}`;
+    el.dataset.type='sticky';
+    el.dataset.hardwareTranscriptId=transcriptId;
+    el.dataset.projectStage='Research';
+    el.className=`object created sticky ${['yellow','blue','green','coral'][index%4]} hardware-sticky`;
+    el.style.left=`${180+(index%4)*230}px`;
+    el.style.top=`${1050+Math.floor(index/4)*165}px`;
+    const stamp=record.created_at?new Date(record.created_at*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+    el.innerHTML=`<p contenteditable="true">${escapeHtml(String(record.text))}</p><footer><span>${escapeHtml(String(record.speaker||'成员'))} · ${escapeHtml(stamp)}</span><button class="note-vote">♡ <b>0</b></button></footer>`;
+    el.classList.toggle('stage-object-hidden',projectStages[projectStageIndex]?.key!=='Research');
+    canvas.append(el);bindObject(el);changed=true;
+  });
+  if(changed){renderMobileNotes();logActivity('ESP32 evidence updated',`${answers.length} hardware viewpoints are stored in the Research stage`);if(roomStarted)scheduleRoomSync()}
+}
+async function summariseHardwareTranscripts(){
+  const notes=latestHardwareTranscripts.map(record=>`${record.speaker||'成员'}：${record.text||''}`).filter(Boolean);
+  if(!notes.length){notify('还没有收到 ESP32 发言');return}
+  const button=$('#summariseHardwareBtn');button.disabled=true;button.textContent='总结中…';
+  try{
+    const response=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'请客观总结这些由 ESP32 收集的小组成员发言，归纳共同观点、不同意见和仍需讨论的问题，不替团队作决定。',notes})});
+    const payload=await response.json();
+    if(!response.ok)throw new Error(payload.error||'总结失败');
+    const a=payload.analysis||{};
+    switchTab('chat');
+    addAi(`<strong>小组发言总结</strong><br>${escapeHtml(String(a.summary||'暂无总结'))}<br><br><strong>仍可讨论：</strong><br>${(a.questions||[]).map(x=>`• ${escapeHtml(String(x))}`).join('<br>')}`);
+    notify('DeepSeek 已完成小组发言总结');
+  }catch(err){notify(err.message||'总结失败')}finally{button.disabled=false;button.textContent='总结发言'}
+}
 function observeRoomCanvas(){
   roomObserver?.disconnect();
   roomObserver=new MutationObserver(mutations=>{
@@ -422,6 +596,7 @@ async function pollRoom(){
     if(!response.ok)return;
     const payload=await response.json();updateRoomMembers(payload.members,payload.roster);
     if(payload.revision>roomRevision&&applyRoomState(payload.state))roomRevision=payload.revision;
+    renderHardwareTranscripts(payload.hardware_transcripts);
   }catch(err){/* Keep the local canvas usable while offline. */}
 }
 async function loadRoomPreview(){
@@ -430,7 +605,7 @@ async function loadRoomPreview(){
     if(!response.ok)return;
     const payload=await response.json();
     if(Number.isInteger(payload.state?.team_size))setTeamSize(payload.state.team_size);
-    updateRoomMembers(payload.members||[],payload.roster||[]);
+    updateRoomMembers(payload.members||[],payload.roster||[]);renderHardwareTranscripts(payload.hardware_transcripts||[]);
   }catch(err){renderTeamSize();renderLobbyMembers()}
 }
 async function initRealtimeRoom(){
@@ -440,6 +615,7 @@ async function initRealtimeRoom(){
     const payload=await roomRequest('/api/room/join',{});
     updateRoomMembers(payload.members,payload.roster);
     if(payload.state){applyRoomState(payload.state);roomRevision=payload.revision}else await pushRoomState();
+    renderHardwareTranscripts(payload.hardware_transcripts||[]);
     roomPollTimer=setInterval(pollRoom,1300);
     roomHeartbeatTimer=setInterval(()=>roomRequest('/api/room/join',{}).then(p=>updateRoomMembers(p.members,p.roster)).catch(()=>{}),10000);
   }catch(err){roomStarted=false}
@@ -644,6 +820,11 @@ function bindStageSceneActions(){
 }
 function renderStageExperience(stage){
   const scene=$('#stageScene');scene.className=`stage-scene ${stage.key.toLowerCase()}-scene`;scene.innerHTML=stageSceneTemplates[stage.key]?.()||'';
+  if(stage.key==='Define'){
+    const evidenceCount=latestHardwareTranscripts.filter(record=>(record.kind||'answer')==='answer'&&record.speaker!=='联动检查').length;
+    scene.insertAdjacentHTML('beforeend',`<aside class="research-evidence-link"><span>研究证据库</span><strong>${evidenceCount} 条 ESP32 成员观点</strong><p>原始发言保留在研究阶段；定义阶段只负责分类和形成问题。</p><button type="button" id="viewResearchEvidence">查看研究便签</button></aside>`);
+    $('#viewResearchEvidence').onclick=()=>{setProjectStage(0);notify('已返回研究阶段，可查看和框选 ESP32 观点')};
+  }
   const researchIds=new Set(['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','c1']);
   const structuredOnly=stage.key==='Define'||stage.key==='Ideate';
   $$('.object').forEach(el=>{if(el.dataset.id==='heading')return;const objectStage=el.dataset.projectStage||(researchIds.has(el.dataset.id)?'Research':'Research');el.classList.toggle('stage-object-hidden',structuredOnly||objectStage!==stage.key)});
@@ -686,9 +867,23 @@ $$('.session-steps button').forEach((btn,index)=>btn.onclick=()=>setSessionMode(
 $('#completeSessionBtn').onclick=()=>setSessionMode(sessionModeIndex+1);
 $('#facilitatorBtn').onclick=()=>$('#facilitatorTray').classList.toggle('hidden');
 $('#closeFacilitator').onclick=()=>$('#facilitatorTray').classList.add('hidden');
-$('#viewRepeatedBtn').onclick=()=>{clearSelection();['n2','n5','n6'].forEach(id=>select($(`[data-id="${id}"]`),true));$('#facilitatorTray').classList.add('hidden');notify('已定位到 3 条相关观察，是否分析由你决定')};
-$('#promptTeamBtn').onclick=()=>{workspace.classList.remove('ai-closed');$('#aiPanel').classList.remove('closed');switchTab('chat');addAi('我注意到团队多次讨论如何整合导师反馈。你们认为分歧来自反馈内容，还是来自理解方式？');$('#facilitatorTray').classList.add('hidden');logActivity('Facilitator prompt','Host invited the team to discuss a repeated topic')};
+$('#viewRepeatedBtn').onclick=()=>{setAiSupportState('waiting');clearSelection();['n2','n5','n6'].forEach(id=>select($(`[data-id="${id}"]`),true));$('#facilitatorTray').classList.add('hidden');notify(localText('已定位相关观察。Pip 仍在等待，不会自动分析','Related observations are located. Pip is still waiting and will not analyse them automatically'))};
+$('#promptTeamBtn').onclick=openInterventionPrompt;
 $('#dismissSignalBtn').onclick=e=>{e.currentTarget.closest('.signal-card')?.remove();$('#signalCount').textContent='1';notify('本次提示已忽略')};
+$('#continueWithoutAi').onclick=()=>interventionStage==='support'?stepBackFromIntervention():stepBackFromIntervention({recovered:true,declined:true});
+$('#acceptAiPrompt').onclick=offerMinimalPrompt;
+$('#askWhyIntervention').onclick=()=>{$('#interventionMessage').textContent=localText('触发原因：8 分钟没有出现新主题，并且同一讨论方向重复出现。Pip 没有分析未选择的便签，也不会替团队判断结论。','Reason: no new theme appeared for 8 minutes and the same discussion direction repeated. Pip did not analyse unselected notes and will not decide the conclusion for the team.')};
+$('#closeIntervention').onclick=()=>interventionStage==='support'?stepBackFromIntervention():stepBackFromIntervention({declined:true});
+$$('input[name="nextSupport"]').forEach(input=>input.onchange=()=>$('#customSupportPicker').classList.toggle('hidden',input.value!=='custom'||!input.checked));
+$('#closeStageReflection').onclick=$('#cancelStageReflection').onclick=()=>{$('#stageReflectionDialog').close();pendingProjectStageIndex=null};
+$('#stageReflectionForm').onsubmit=e=>{
+  e.preventDefault();const choice=$('input[name="nextSupport"]:checked')?.value||'keep';
+  if(choice==='lower')setSupportMode('request',{announce:true});
+  if(choice==='custom')setSupportMode($('#customSupportMode').value,{announce:true});
+  if(choice==='keep')setSupportMode(supportMode);
+  const nextIndex=pendingProjectStageIndex;$('#stageReflectionDialog').close();pendingProjectStageIndex=null;
+  logActivity('Support level confirmed',`Next stage support: ${SUPPORT_MODES[supportMode].en}`);resetInterventionStats();chooseProjectStage(nextIndex);
+};
 let elapsedSeconds=18*60+42;
 setInterval(()=>{elapsedSeconds++;const minutes=String(Math.floor(elapsedSeconds/60)).padStart(2,'0'),seconds=String(elapsedSeconds%60).padStart(2,'0');$('#sessionTimer').textContent=`${minutes}:${seconds}`},1000);
 
@@ -700,6 +895,7 @@ const pageParams=new URLSearchParams(location.search);
 const savedMemberName=localStorage.getItem('colab_member_name')||'';
 $('#joinName').value=savedMemberName;
 setTeamSize(teamSize,{persist:false});
+setSupportMode(supportMode,{persist:false});
 function showWorkspaceEntry(){
   const shouldShowLobby=pageParams.has('join')||!sessionStorage.getItem('colab_joined');
   if(shouldShowLobby){$('#joinLobby').classList.remove('hidden');return}
@@ -707,12 +903,14 @@ function showWorkspaceEntry(){
 }
 $('#teamSizeDown').onclick=()=>setTeamSize(teamSize-1,{sync:true});
 $('#teamSizeUp').onclick=()=>setTeamSize(teamSize+1,{sync:true});
+$$('input[name="supportMode"]').forEach(input=>input.onchange=()=>setSupportMode(input.value));
 $('#joinName').addEventListener('input',()=>{renderLobbyMembers();$('#joinFormError').classList.add('hidden')});
 $('#joinForm').onsubmit=e=>{
   e.preventDefault();
   const name=$('#joinName').value.trim();
   if(!name){$('#joinFormError').classList.remove('hidden');$('#joinName').focus();return}
   localStorage.setItem('colab_member_name',name);
+  setSupportMode($('input[name="supportMode"]:checked')?.value||supportMode);
   sessionStorage.setItem('colab_joined','1');
   initRealtimeRoom();
   $('#joinLobby').classList.add('leaving');

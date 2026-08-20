@@ -53,6 +53,7 @@ def save_rooms():
             "revision": room.get("revision", 0),
             "state": room.get("state"),
             "roster": room.get("roster", {}),
+            "hardware_transcripts": room.get("hardware_transcripts", [])[-100:],
             "updated_at": room.get("updated_at", 0),
         }
     with open(temporary, "w", encoding="utf-8") as handle:
@@ -61,7 +62,7 @@ def save_rooms():
 
 
 def room_payload(room_id):
-    room = rooms.setdefault(room_id, {"revision": 0, "state": None, "members": {}, "roster": {}, "updated_at": 0})
+    room = rooms.setdefault(room_id, {"revision": 0, "state": None, "members": {}, "roster": {}, "hardware_transcripts": [], "updated_at": 0})
     now = time.time()
     room["members"] = {
         member_id: member for member_id, member in room.get("members", {}).items()
@@ -81,6 +82,7 @@ def room_payload(room_id):
         "state": room.get("state"),
         "members": members,
         "roster": roster,
+        "hardware_transcripts": room.get("hardware_transcripts", [])[-100:],
     }
 
 
@@ -191,6 +193,36 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
             cookie = f"colab_access={session_token()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400{secure}"
             return self.send_json(200, {"ok": True}, cookie=cookie)
 
+        if self.path == "/api/hardware/transcript":
+            try:
+                data = self.read_json()
+            except Exception:
+                return self.send_json(400, {"error": "无效的硬件数据"})
+            room_id = clean_room_id(data.get("room"))
+            text = re.sub(r"\s+", " ", str(data.get("text", ""))).strip()[:500]
+            speaker = re.sub(r"[<>]", "", str(data.get("speaker", "ESP32"))).strip()[:30] or "ESP32"
+            kind = str(data.get("kind", "answer")).strip().lower()
+            if kind not in ("question", "answer", "feedback"):
+                kind = "answer"
+            if not text:
+                return self.send_json(400, {"error": "没有可用的识别文字"})
+            with room_lock:
+                room = rooms.setdefault(room_id, {"revision": 0, "state": None, "members": {}, "roster": {}, "hardware_transcripts": [], "updated_at": 0})
+                transcripts = room.setdefault("hardware_transcripts", [])
+                record = {
+                    "id": f"esp32-{int(time.time() * 1000)}-{len(transcripts)}",
+                    "speaker": speaker,
+                    "kind": kind,
+                    "text": text,
+                    "created_at": time.time(),
+                }
+                transcripts.append(record)
+                del transcripts[:-100]
+                room["revision"] = int(room.get("revision", 0)) + 1
+                room["updated_at"] = time.time()
+                save_rooms()
+            return self.send_json(201, {"ok": True, "record": record})
+
         if self.path in ("/api/room/join", "/api/room/state"):
             if not self.authenticated():
                 return self.send_json(401, {"error": "需要邀请链接", "code": "unauthorized"})
@@ -204,7 +236,7 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
             if not member_id:
                 return self.send_json(400, {"error": "缺少成员标识"})
             with room_lock:
-                room = rooms.setdefault(room_id, {"revision": 0, "state": None, "members": {}, "roster": {}, "updated_at": 0})
+                room = rooms.setdefault(room_id, {"revision": 0, "state": None, "members": {}, "roster": {}, "hardware_transcripts": [], "updated_at": 0})
                 room.setdefault("members", {})[member_id] = {"name": member_name, "seen": time.time()}
                 roster = room.setdefault("roster", {})
                 existing_roster_member = roster.get(member_id)
