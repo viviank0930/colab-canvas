@@ -1,0 +1,11 @@
+.git
+.DS_Store
+.colab.pid
+*.log
+*.swp
+outputs/
+work/
+*.command
+*.md
+*.png
+*.svg

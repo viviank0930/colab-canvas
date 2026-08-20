@@ -19,6 +19,7 @@ ACCESS_CODE = os.getenv("APP_ACCESS_CODE", "")
 DAILY_LIMIT = int(os.getenv("DAILY_AI_LIMIT", "10"))
 USER_DAILY_LIMIT = int(os.getenv("PER_USER_DAILY_LIMIT", "3"))
 SESSION_SECRET = os.getenv("APP_SECRET", ACCESS_CODE or "local-development")
+IS_HOSTED = bool(os.getenv("RENDER") or os.getenv("KOYEB_APP_NAME"))
 usage_lock = threading.Lock()
 usage_day = date.today().isoformat()
 total_usage = 0
@@ -98,7 +99,7 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "same-origin")
         if getattr(self, "invite_cookie", False):
-            secure = "; Secure" if os.getenv("RENDER") else ""
+            secure = "; Secure" if IS_HOSTED else ""
             self.send_header("Set-Cookie", f"colab_access={session_token()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000{secure}")
         super().end_headers()
 
@@ -189,7 +190,7 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
                 supplied = ""
             if not hmac.compare_digest(supplied, ACCESS_CODE):
                 return self.send_json(401, {"error": "访问码不正确", "code": "invalid_access_code"})
-            secure = "; Secure" if os.getenv("RENDER") else ""
+            secure = "; Secure" if IS_HOSTED else ""
             cookie = f"colab_access={session_token()}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400{secure}"
             return self.send_json(200, {"ok": True}, cookie=cookie)
 
@@ -328,7 +329,7 @@ class WorkspaceHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "4173"))
-    host = os.getenv("HOST", "0.0.0.0" if os.getenv("RENDER") else "127.0.0.1")
+    host = os.getenv("HOST", "0.0.0.0" if IS_HOSTED else "127.0.0.1")
     print(f"CoLab workspace: http://{host}:{port}")
     print(f"AI model: {MODEL} ({'configured' if os.getenv('DEEPSEEK_API_KEY') else 'DEEPSEEK_API_KEY missing'})")
     print(f"Access protection: {'enabled' if ACCESS_CODE else 'disabled for local use'}")
