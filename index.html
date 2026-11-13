@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#f5f5f2" />
   <title>CoLab - AI 协作空间</title>
-  <link rel="stylesheet" href="./styles.css?v=20260728-3" />
+  <link rel="stylesheet" href="./styles.css?v=20261113-1" />
 </head>
 <body>
   <div class="join-lobby hidden" id="joinLobby" role="dialog" aria-modal="true" aria-labelledby="joinTitle">
@@ -19,9 +19,9 @@
       </header>
       <main class="join-grid">
         <section class="join-hero">
-          <span class="join-kicker">共同方向 · 研究工作坊</span>
-          <h1 id="joinTitle">加入今天的<br>团队讨论。</h1>
-          <p>先了解这次讨论的目标与成员，再进入共同画布。你的观点会由你自己记录和决定。</p>
+          <span class="join-kicker">共同方向</span>
+          <h1 id="joinTitle">加入团队讨论。</h1>
+          <p>查看目标与成员，然后进入共同画布。</p>
           <div class="join-meta" aria-label="讨论信息">
             <div><small>团队人数</small><strong><b id="joinTeamSizeMetric">4</b> <span>人</span></strong></div>
             <div><small>当前在线</small><strong><i></i><b id="joinOnlineMetric">0 / 4</b></strong></div>
@@ -30,21 +30,21 @@
         </section>
         <section class="join-panel">
           <header class="join-panel-head">
-            <div><small>本次讨论</small><h2>为什么项目会失去共同方向？</h2></div>
+            <div><small>讨论主题</small><h2>为什么项目会失去共同方向？</h2></div>
             <span>研究阶段</span>
           </header>
           <div class="join-members" id="joinMembers" aria-label="讨论成员"></div>
           <div class="join-brief">
-            <small>今天要完成</small>
-            <strong>收集不同成员对导师反馈的理解</strong>
-            <p>最后由团队确认哪些是内容问题，哪些是协作过程问题。</p>
+            <small>本轮目标</small>
+            <strong>对齐导师反馈的理解</strong>
+            <p>区分内容问题与协作问题。</p>
           </div>
           <ol class="join-flow" aria-label="讨论流程">
             <li class="active"><i>1</i><span>记录</span></li><li><i>2</i><span>讨论</span></li><li><i>3</i><span>投票</span></li><li><i>4</i><span>回顾</span></li>
           </ol>
           <form class="join-form" id="joinForm">
             <div class="join-size-field">
-              <div><label for="teamSizeValue">这次讨论共有几人？</label><small>团队人数包含你自己，可在进入前调整。</small></div>
+              <div><label for="teamSizeValue">团队人数</label><small>包含你自己</small></div>
               <div class="team-size-control" role="group" aria-label="选择团队人数">
                 <button type="button" id="teamSizeDown" aria-label="减少团队人数">−</button>
                 <output id="teamSizeValue" aria-live="polite">4</output><span>人</span>
@@ -52,28 +52,27 @@
               </div>
             </div>
             <fieldset class="support-mode-field">
-              <legend>这次希望 Pip 怎样参与？</legend>
-              <p>AI 可以观察协作节奏，但不会自动整理或分析整个画布。</p>
+              <legend>Pip 参与方式</legend>
               <div class="support-mode-options">
                 <label>
                   <input type="radio" name="supportMode" value="observe" checked>
-                  <span><b>观察优先</b><small>持续停滞后先询问，再提供最小支持</small></span>
+                  <span><b>观察优先</b><small>停滞时先征求同意</small></span>
                 </label>
                 <label>
                   <input type="radio" name="supportMode" value="signal">
-                  <span><b>轻提示</b><small>较早显示协作信号，仍需团队同意</small></span>
+                  <span><b>轻提示</b><small>较早显示协作信号</small></span>
                 </label>
                 <label>
                   <input type="radio" name="supportMode" value="request">
-                  <span><b>仅主动邀请</b><small>只有团队主动请求时 Pip 才出现</small></span>
+                  <span><b>仅主动邀请</b><small>只响应团队请求</small></span>
                 </label>
               </div>
             </fieldset>
-            <label for="joinName">你希望团队怎样称呼你？</label>
+            <label for="joinName">你的名字</label>
             <div class="join-name-row"><input id="joinName" name="memberName" maxlength="20" autocomplete="name" placeholder="输入你的名字" required><button type="submit">加入讨论 <b>↗</b></button></div>
             <p class="join-form-error hidden" id="joinFormError">请输入名字后再加入。</p>
           </form>
-          <p class="join-ai-note"><span class="ai-face micro"><i></i><b></b></span>Pip 不会预先整理画布，只在团队主动选择内容并请求后提供建议。</p>
+          <p class="join-ai-note"><span class="ai-face micro"><i></i><b></b></span>AI 只分析你主动选择的内容。</p>
         </section>
       </main>
     </div>
@@ -83,10 +82,10 @@
     <div class="onboarding-card">
       <header><span class="brand-mark">C</span><div class="onboarding-actions"><button class="language-switch" data-language-toggle type="button" aria-label="Switch to English"><span data-lang-option="zh">中</span><span data-lang-option="en">EN</span></button><button id="skipTour">跳过教程</button></div></header>
       <div class="tour-progress"><i class="active"></i><i></i><i></i><i></i></div>
-      <section class="tour-slide active" data-tour="0"><small>01 · 欢迎</small><h1 id="onboardingTitle">先由人思考，<br>再邀请 AI 参与。</h1><p>CoLab 不会自动整理你的画布。团队自由记录，只有框选内容并主动请求后，Pip 才会提供建议。</p><div class="tour-visual tour-canvas"><span></span><span></span><span></span><b>框选需要帮助的区域</b></div></section>
-      <section class="tour-slide" data-tour="1"><small>02 · 两种阶段</small><h1>项目向前走，<br>会议有节奏。</h1><p>左侧是项目阶段；顶部是一次会议的记录、讨论、投票与回顾。每一步都有明确目标和完成条件。</p><div class="tour-visual tour-flow"><b>研究</b><i></i><b>定义</b><i></i><b>构思</b><i></i><b>开发</b><i></i><b>回顾</b></div></section>
-      <section class="tour-slide" data-tour="2"><small>03 · 录音位置</small><h1>说完以后，<br>随时知道它在哪里。</h1><p>录音结束后会进入“讨论”中的语音记录。它会保存在当前设备的浏览器中，刷新后仍可播放，也可以下载到本机。</p><div class="tour-visual tour-audio"><button>■</button><span><strong>团队语音记录</strong><small>讨论 · 已保存在此设备</small></span><time>00:18</time></div></section>
-      <section class="tour-slide" data-tour="3"><small>04 · 手机协作</small><h1>电脑组织全局，<br>手机快速参与。</h1><p>成员通过邀请链接进入移动端，可添加观点、投票、录音和查看机器人状态，不需要操作缩小版桌面画布。</p><div class="tour-visual tour-phone"><div><span>共同方向</span><b>添加一个观点</b><i></i><i></i></div></div></section>
+      <section class="tour-slide active" data-tour="0"><small>01 · 欢迎</small><h1 id="onboardingTitle">先由人思考，<br>再邀请 AI。</h1><p>自由记录。需要支持时，框选内容再邀请 Pip。</p><div class="tour-visual tour-canvas"><span></span><span></span><span></span><b>框选需要帮助的区域</b></div></section>
+      <section class="tour-slide" data-tour="1"><small>02 · 两种阶段</small><h1>项目向前走，<br>会议有节奏。</h1><p>左侧切换项目阶段，顶部推进本轮讨论。</p><div class="tour-visual tour-flow"><b>研究</b><i></i><b>定义</b><i></i><b>构思</b><i></i><b>开发</b><i></i><b>回顾</b></div></section>
+      <section class="tour-slide" data-tour="2"><small>03 · 录音位置</small><h1>说完以后，<br>随时找得到。</h1><p>录音保存在当前浏览器，可播放、下载或删除。</p><div class="tour-visual tour-audio"><button>■</button><span><strong>团队语音记录</strong><small>讨论 · 已保存在此设备</small></span><time>00:18</time></div></section>
+      <section class="tour-slide" data-tour="3"><small>04 · 手机协作</small><h1>电脑看全局，<br>手机快参与。</h1><p>手机可添加观点、投票、录音并查看机器人状态。</p><div class="tour-visual tour-phone"><div><span>共同方向</span><b>添加一个观点</b><i></i><i></i></div></div></section>
       <footer><button id="tourBack" disabled>上一步</button><span id="tourStep">1 / 4</span><button id="tourNext">下一步</button></footer>
     </div>
   </div>
@@ -135,7 +134,7 @@
 
       <section class="canvas-wrap" id="canvasWrap" aria-label="Infinite collaborative canvas">
         <div class="session-strip" id="sessionStrip">
-          <div><span class="live-indicator"></span><strong id="sessionStripTitle">自由记录</strong><small id="sessionStripHint">团队正在独立收集观察，AI保持安静</small></div>
+          <div><span class="live-indicator"></span><strong id="sessionStripTitle">自由记录</strong><small id="sessionStripHint">团队记录中 · Pip 安静观察</small></div>
           <div class="session-steps" aria-label="会议阶段"><button class="active" data-session-step="记录">记录</button><i></i><button data-session-step="讨论">讨论</button><i></i><button data-session-step="投票">投票</button><i></i><button data-session-step="回顾">回顾</button></div>
           <time id="sessionTimer">18:42</time><button class="complete-session" id="completeSessionBtn">完成并继续</button>
         </div>
@@ -151,9 +150,9 @@
         </section>
 
         <aside class="facilitator-tray hidden" id="facilitatorTray" aria-label="主持人观察">
-          <header><div><small>当前 AI 状态</small><strong id="facilitatorStateTitle">安静观察</strong><p id="facilitatorStateDescription">团队仍在推进，Pip 不会打断讨论。</p></div><button id="closeFacilitator" aria-label="关闭">×</button></header>
+          <header><div><small>AI 状态</small><strong id="facilitatorStateTitle">安静观察</strong><p id="facilitatorStateDescription">团队仍在推进。</p></div><button id="closeFacilitator" aria-label="关闭">×</button></header>
           <article class="signal-card primary-signal">
-            <span>持续观察到协作信号</span><strong>过去 8 分钟没有出现新主题</strong><p>关于“如何整合导师反馈”的讨论已重复出现 4 次。Pip 会先等待团队自行恢复。</p>
+            <span>协作信号</span><strong>8 分钟没有新主题</strong><p>同一方向已重复 4 次。Pip 暂不介入。</p>
             <div><button id="viewRepeatedBtn">查看相关内容</button><button id="promptTeamBtn">询问是否需要支持</button></div>
           </article>
           <article class="signal-card"><span>参与平衡</span><strong>有 2 位成员尚未回应</strong><p>这是参与提示，不用于评价个人贡献。</p><button id="dismissSignalBtn">暂时忽略</button></article>
@@ -161,7 +160,7 @@
         </aside>
         <section class="intervention-prompt hidden" id="interventionPrompt" aria-live="polite">
           <header><span class="ai-face tiny"><i></i><b></b></span><div><small id="interventionKicker">Pip 正在征求同意</small><strong id="interventionTitle">需要一个提示吗？</strong></div><button id="closeIntervention" aria-label="关闭">×</button></header>
-          <p id="interventionMessage">我注意到这个话题已经重复了一段时间。你们想继续自己讨论，还是希望我提出一个反思问题？</p>
+          <p id="interventionMessage">这个话题正在重复。继续讨论，还是让 Pip 提一个问题？</p>
           <div class="intervention-actions" id="interventionActions">
             <button id="continueWithoutAi">继续讨论</button>
             <button id="askWhyIntervention">查看原因</button>
@@ -172,7 +171,7 @@
           <svg class="connection-layer" id="connectionLayer" width="2400" height="1600" aria-hidden="true"></svg>
           <section class="stage-scene research-scene" id="stageScene" aria-live="polite"></section>
           <section class="canvas-heading object" data-id="heading" data-type="text" style="left:145px;top:90px">
-            <span>研究阶段 · 团队工作坊</span><h1 contenteditable="true">为什么我们的项目会失去方向？</h1><p>来自 Vivian、Kevin、Amy 与 Leo 的分散观察</p>
+            <span>研究阶段</span><h1 contenteditable="true">为什么我们的项目会失去方向？</h1><p>团队观察</p>
           </section>
           <article class="sticky object yellow" data-id="n1" data-type="sticky" style="left:170px;top:300px"><p contenteditable="true">研究发现之间很难建立联系。</p><footer><span>Vivian · 10:12</span><button class="note-vote">♡ <b>3</b></button></footer></article>
           <article class="sticky object blue tilt-right" data-id="n2" data-type="sticky" style="left:490px;top:260px"><p contenteditable="true">每个人对导师反馈的理解都不一样。</p><footer><span>Kevin · 10:18</span><button class="note-vote">♡ <b>5</b></button></footer></article>
@@ -201,23 +200,23 @@
         <div class="ai-header"><div><span class="ai-face"><i></i><b></b></span><div><strong>Pip · 协作伙伴</strong><small><span class="live-dot"></span><span id="aiPanelState">正在安静观察</span></small></div></div><button class="icon-btn" id="closeAI" aria-label="收起 AI 侧栏">×</button></div>
         <div class="ai-tabs"><button class="active" data-tab="insights">理解</button><button data-tab="chat">讨论</button><button data-tab="progress">记忆</button><button data-tab="activity">报告</button></div>
         <div class="ai-content" id="insightsPanel">
-          <div class="partner-status"><span>人类控制</span><strong>团队主导，Pip 提供支持。</strong><p>只有当你框选内容并主动请求时，Pip 才会分析该区域。</p><div class="partner-support-mode"><small>本次支持方式</small><b id="partnerSupportMode">观察优先</b></div></div>
-          <section class="understanding-card"><header><span>当前理解</span><small>尚未确认</small></header><h3>是什么让团队失去共同方向？</h3><div class="understanding-row"><span>当前阶段</span><strong>研究</strong></div><div class="understanding-row"><span>已选择证据</span><strong>无</strong></div></section>
-          <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>从你的选择开始反思</strong><p>框选一组便签，再选择 <b>AI 分析</b>。Pip 只呈现模式与问题，不改变画布。</p></div></section>
+          <div class="partner-status"><span>支持边界</span><strong>由人选择，Pip 再分析</strong><p>未选择的内容不会被分析。</p><div class="partner-support-mode"><small>参与方式</small><b id="partnerSupportMode">观察优先</b></div></div>
+          <section class="understanding-card"><header><span>当前理解</span><small>待确认</small></header><h3>团队为何失去共同方向？</h3><div class="understanding-row"><span>阶段</span><strong>研究</strong></div><div class="understanding-row"><span>所选证据</span><strong>无</strong></div></section>
+          <section class="reflection-empty"><div class="reflection-mark">?</div><div><strong>先选择内容</strong><p>框选便签，再点 <b>AI 分析</b>。</p></div></section>
         </div>
         <div class="ai-content hidden" id="chatPanel">
-          <div class="ai-message"><span class="ai-face tiny"><i></i><b></b></span><div><p>I am ready when you request support. Select part of the canvas or ask a question to begin.</p><time>Now</time></div></div>
+          <div class="ai-message"><span class="ai-face tiny"><i></i><b></b></span><div><p>准备好了。选择画布内容，或直接提出问题。</p><time>刚刚</time></div></div>
         </div>
         <div class="ai-content hidden" id="progressPanel">
-          <div class="progress-hero"><span>Research stage</span><strong>Page memory</strong><p>Memory belongs only to this page and stays editable by the team.</p></div>
-          <div class="progress-step current"><i>?</i><div><strong>Unresolved question</strong><small>What is content feedback versus process feedback?</small></div></div>
-          <div class="progress-step"><i>✓</i><div><strong>Confirmed insight</strong><small>No confirmed insights yet</small></div></div>
-          <div class="progress-step"><i>→</i><div><strong>Next action</strong><small>Waiting for a team decision</small></div></div>
-          <div class="hardware-card"><strong>Ready for future hardware</strong><p>Voice recorder, drawing screen, and AI printed summaries can connect to this workspace.</p></div>
+          <div class="progress-hero"><span>研究阶段</span><strong>项目记忆</strong><p>由团队持续编辑。</p></div>
+          <div class="progress-step current"><i>?</i><div><strong>待解决</strong><small>内容问题，还是协作问题？</small></div></div>
+          <div class="progress-step"><i>✓</i><div><strong>已确认</strong><small>暂无</small></div></div>
+          <div class="progress-step"><i>→</i><div><strong>下一步</strong><small>等待团队决定</small></div></div>
+          <div class="hardware-card"><strong>实体设备接口</strong><p>可连接录音、绘图与打印设备。</p></div>
         </div>
-        <div class="ai-content hidden" id="activityPanel"><div class="activity-head"><strong>Activity History</strong><p>Canvas and AI actions appear here. Applied AI changes can be undone.</p></div><div class="activity-list" id="activityList"></div></div>
-        <div class="analysis-view hidden" id="analysisView"><div class="analysis-head"><span class="ai-face"><i></i><b></b></span><div><strong>Analysis of <span id="analysisCount">0</span> notes</strong><small>Pip found patterns, not answers</small></div><button id="closeAnalysis">×</button></div><div class="analysis-loading" id="analysisLoading"><span></span><p>Reading the team's notes...</p></div><div class="analysis-results hidden" id="analysisResults"></div></div>
-        <form class="ai-input" id="aiForm"><div class="recording-status hidden" id="recordingStatus"><span></span><div><strong>正在录音 <time id="recordingTimer">00:00</time></strong><small>停止后保存在当前浏览器的“讨论”中，不会自动下载或上传</small></div><button type="button" id="recordingStopBtn">停止</button></div><div class="composer-heading"><label for="aiPrompt">询问协作伙伴</label><span>只包含你主动选择的画布内容</span></div><div class="composer-shell"><textarea id="aiPrompt" rows="2" placeholder="我们应该一起反思什么？"></textarea><div class="composer-actions"><div><button type="button" id="attachBtn" aria-label="添加附件">＋ <span>附件</span></button><button type="button" id="voiceBtn" aria-label="语音输入">● <span>语音</span></button></div><button type="submit" class="send-btn" aria-label="询问 Pip">询问 Pip <b>↗</b></button></div></div><div class="recording-location">录音保存在当前浏览器的网站数据中，可逐条删除或全部清空。</div><div class="prompt-chips"><button type="button" class="quick-ai" data-quick="Summarise">总结所选内容</button><button type="button" class="quick-ai" data-quick="Next Step">建议讨论问题</button></div></form>
+        <div class="ai-content hidden" id="activityPanel"><div class="activity-head"><strong>活动记录</strong><p>记录画布与 AI 操作，支持撤回。</p></div><div class="activity-list" id="activityList"></div></div>
+        <div class="analysis-view hidden" id="analysisView"><div class="analysis-head"><span class="ai-face"><i></i><b></b></span><div><strong>分析 <span id="analysisCount">0</span> 条便签</strong><small>显示模式，不替你下结论</small></div><button id="closeAnalysis">×</button></div><div class="analysis-loading" id="analysisLoading"><span></span><p>正在读取所选便签…</p></div><div class="analysis-results hidden" id="analysisResults"></div></div>
+        <form class="ai-input" id="aiForm"><div class="recording-status hidden" id="recordingStatus"><span></span><div><strong>正在录音 <time id="recordingTimer">00:00</time></strong><small>保存在本浏览器的“讨论”中</small></div><button type="button" id="recordingStopBtn">停止</button></div><div class="composer-heading"><label for="aiPrompt">询问 Pip</label><span>仅使用所选内容</span></div><div class="composer-shell"><textarea id="aiPrompt" rows="2" placeholder="想一起反思什么？"></textarea><div class="composer-actions"><div><button type="button" id="attachBtn" aria-label="添加附件">＋ <span>附件</span></button><button type="button" id="voiceBtn" aria-label="语音输入">● <span>语音</span></button></div><button type="submit" class="send-btn" aria-label="询问 Pip">发送 <b>↗</b></button></div></div><div class="recording-location">录音保存在本浏览器</div><div class="prompt-chips"><button type="button" class="quick-ai" data-quick="Summarise">总结选择</button><button type="button" class="quick-ai" data-quick="Next Step">讨论问题</button></div></form>
       </aside>
     </main>
     <input type="file" id="imageInput" accept="image/*" hidden />
@@ -236,21 +235,21 @@
           <button data-mobile-stage="Develop"><b>开发</b><small>测试</small></button>
           <button data-mobile-stage="Review"><b>回顾</b><small>确认</small></button>
         </nav>
-        <div class="mobile-stage-card"><span>01 / 05 · 研究</span><h1>为什么我们的项目会失去方向？</h1><p>当前目标：记录事实、观察和反馈。</p><button id="mobileStageInfo">查看阶段说明</button></div>
+        <div class="mobile-stage-card"><span>01 / 05 · 研究</span><h1>为什么我们的项目会失去方向？</h1><p>目标：记录事实、观察和反馈。</p><button id="mobileStageInfo">查看阶段说明</button></div>
         <section class="mobile-stage-workspace" id="mobileStageWorkspace"></section>
-        <div class="mobile-compose"><button id="mobileAddNote">＋</button><div><strong id="mobileComposeTitle">添加一个观察</strong><small id="mobileComposeHint">录音仅保存在本浏览器，可在“我的”清空</small></div><button id="mobileVoiceBtn"><span>●</span>录音</button></div>
+        <div class="mobile-compose"><button id="mobileAddNote">＋</button><div><strong id="mobileComposeTitle">添加一个观察</strong><small id="mobileComposeHint">录音保存在本浏览器</small></div><button id="mobileVoiceBtn"><span>●</span>录音</button></div>
         <section class="mobile-note-list" id="mobileNoteList">
           <article class="mobile-note yellow"><p>研究发现之间很难建立联系。</p><footer><span>Vivian · 10:12</span><button>♡ 3</button></footer></article>
           <article class="mobile-note blue"><p>每个人对导师反馈的理解都不一样。</p><footer><span>Kevin · 10:18</span><button>♡ 5</button></footer></article>
           <article class="mobile-note coral"><p>讨论经常在没有明确决定的情况下结束。</p><footer><span>Amy · 10:23</span><button>♡ 4</button></footer></article>
         </section>
       </section>
-      <section class="mobile-view" data-mobile-view="discuss"><div class="mobile-page-title"><span>团队讨论</span><h1>问题与语音记录</h1></div><div class="mobile-discussion-empty"><span>?</span><strong>还没有新的讨论</strong><p>提出问题或录制一段语音，内容会同步到团队工作区。</p></div></section>
+      <section class="mobile-view" data-mobile-view="discuss"><div class="mobile-page-title"><span>团队讨论</span><h1>问题与语音记录</h1></div><div class="mobile-discussion-empty"><span>?</span><strong>还没有新的讨论</strong><p>提出问题或录制语音即可开始。</p></div></section>
       <section class="mobile-view" data-mobile-view="robot"><div class="mobile-page-title"><span>实体设备</span><h1>Pip 机器人</h1></div><div class="mobile-ai-support-state"><span class="ai-state-dot"></span><div><small>AI 当前状态</small><strong id="mobileAiState">正在安静观察</strong></div></div><div class="robot-card"><div class="ai-face"><i></i><b></b></div><strong id="mobileRobotStatus">在线，等待指令</strong><p id="mobileRobotMessage">机器人只在主持人确认后沿固定轨迹移动。</p><div class="mobile-route-map" id="mobileRouteMap" aria-label="机器人固定路径"></div><dl><div><dt>当前位置</dt><dd id="mobileRobotPosition">起点</dd></div><div><dt>电量</dt><dd>82%</dd></div><div><dt>当前任务</dt><dd id="mobileRobotTask">等待团队开始</dd></div></dl><button id="mobileRobotRequest">请求机器人收集意见</button></div></section>
-      <section class="mobile-view" data-mobile-view="me"><div class="mobile-page-title"><span>参与记录</span><h1>我的贡献</h1></div><div class="mobile-me-card"><strong>今天</strong><div><span>新增观点</span><b>3</b></div><div><span>参与投票</span><b>5</b></div><div><span>语音记录</span><b id="mobileVoiceCount">0</b></div><p>这些数据用于帮助参与更公平，不用于成员排名。</p></div><div class="recording-storage-card"><span>录音存储</span><strong>当前浏览器的网站数据</strong><p>不会自动进入电脑“下载”文件夹，也不会上传到云端。清除后无法恢复。</p><button id="deleteAllRecordings" type="button">删除全部录音</button></div></section>
+      <section class="mobile-view" data-mobile-view="me"><div class="mobile-page-title"><span>参与记录</span><h1>我的贡献</h1></div><div class="mobile-me-card"><strong>今天</strong><div><span>新增观点</span><b>3</b></div><div><span>参与投票</span><b>5</b></div><div><span>语音记录</span><b id="mobileVoiceCount">0</b></div><p>仅用于改善参与，不用于排名。</p></div><div class="recording-storage-card"><span>录音存储</span><strong>当前浏览器</strong><p>不会自动下载或上传。</p><button id="deleteAllRecordings" type="button">删除全部录音</button></div></section>
     </main>
     <nav class="mobile-nav"><button class="active" data-mobile-tab="canvas"><span>□</span>画布</button><button data-mobile-tab="discuss"><span>○</span>讨论</button><button data-mobile-tab="robot"><span>◇</span>机器人</button><button data-mobile-tab="me"><span>·</span>我的</button></nav>
-    <div class="mobile-recording-sheet hidden" id="mobileRecordingSheet"><span class="recording-pulse"></span><strong>正在录音</strong><time id="mobileRecordingTimer">00:00</time><p>停止后保存在当前浏览器，不会自动下载或上传</p><button id="mobileStopRecording">停止并保存</button></div>
+    <div class="mobile-recording-sheet hidden" id="mobileRecordingSheet"><span class="recording-pulse"></span><strong>正在录音</strong><time id="mobileRecordingTimer">00:00</time><p>停止后保存在本浏览器</p><button id="mobileStopRecording">停止并保存</button></div>
   </div>
 
   <dialog class="note-entry-dialog" id="noteEntryDialog" aria-labelledby="noteEntryTitle">
@@ -273,7 +272,7 @@
   <dialog class="stage-reflection-dialog" id="stageReflectionDialog" aria-labelledby="stageReflectionTitle">
     <form method="dialog" id="stageReflectionForm">
       <header><div><small>阶段结束前</small><h2 id="stageReflectionTitle">先回顾团队怎样完成了这一阶段</h2></div><button type="button" id="closeStageReflection" aria-label="关闭">×</button></header>
-      <p>这些记录只用于调整下一阶段的支持方式，不用于成员排名。</p>
+      <p>仅用于调整下一阶段，不用于成员排名。</p>
       <div class="reflection-metrics">
         <article><strong id="metricRecovered">0</strong><span>团队自行恢复</span></article>
         <article><strong id="metricPrompts">0</strong><span>AI 主动询问</span></article>
@@ -297,6 +296,6 @@
       <footer><button type="button" id="cancelStageReflection">返回画布</button><button type="submit" id="confirmStageReflection">确认并进入下一阶段</button></footer>
     </form>
   </dialog>
-  <script src="./script.js?v=20260728-4"></script>
+  <script src="./script.js?v=20261113-1"></script>
 </body>
 </html>
